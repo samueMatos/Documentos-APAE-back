@@ -40,6 +40,13 @@ public class WebConfigurer {
                         .requestMatchers(HttpMethod.DELETE, "/user/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/user/removeAdmin/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/user/setAdmin/{id}").hasRole("ADMIN")
+                        .requestMatchers(
+                                "/auth/**",
+                                "/swagger-ui/**",
+                                "/api-docs/**",
+                                "/swagger-resources/**",
+                                "/webjars/**"
+                        ).permitAll()
                         .anyRequest().authenticated())
                         .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
