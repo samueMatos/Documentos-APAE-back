@@ -1,7 +1,6 @@
 package br.apae.ged.domain.models;
 
 import br.apae.ged.domain.models.enums.TipoArquivo;
-import br.apae.ged.domain.models.enums.TipoDocumento;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

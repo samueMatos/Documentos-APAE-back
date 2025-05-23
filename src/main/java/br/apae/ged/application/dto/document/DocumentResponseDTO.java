@@ -3,8 +3,8 @@ package br.apae.ged.application.dto.document;
 import br.apae.ged.application.dto.aluno.AlunoResponseDTO;
 import br.apae.ged.application.dto.user.UserResponse;
 import br.apae.ged.domain.models.Document;
+import br.apae.ged.domain.models.TipoDocumento;
 import br.apae.ged.domain.models.enums.TipoArquivo;
-import br.apae.ged.domain.models.enums.TipoDocumento;
 
 import java.time.LocalDateTime;
 
