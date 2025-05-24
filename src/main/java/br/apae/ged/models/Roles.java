@@ -1,9 +1,7 @@
 package br.apae.ged.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import br.apae.ged.models.enums.TipoRoles;
+import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -19,6 +17,9 @@ public class Roles implements GrantedAuthority {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private String nome;
+
+    @Enumerated(EnumType.STRING)
+    private TipoRoles tipoRoles;
 
     @Override
     public String getAuthority() {
