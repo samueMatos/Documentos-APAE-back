@@ -29,7 +29,8 @@ public class Document {
     private LocalDateTime dataDownload;
     private LocalDateTime dataUpdate;
 
-    @Enumerated(EnumType.STRING)
+    @ManyToOne
+    @JoinColumn(name = "document_type_id")
     private TipoDocumento tipoDocumento;
 
     @Enumerated(EnumType.STRING)
