@@ -1,6 +1,7 @@
 package br.apae.ged.domain.models;
 
 
+import br.apae.ged.application.dto.aluno.AlunoRequestDTO;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -13,7 +14,7 @@ import lombok.*;
 @Entity(name = "tb_endereco")
 public class Endereco extends EntityID{
 
-    private Cidade cidade;
+
     private String bairro;
     private String rua;
     private int numero;
@@ -23,6 +24,9 @@ public class Endereco extends EntityID{
     @ManyToOne
     @JoinColumn(name = "aluno_id", referencedColumnName = "id")
     private Alunos aluno;
+    @ManyToOne
+    @JoinColumn(name = "cidade_id", referencedColumnName = "id")
+    private Cidade cidade;
 
     public Endereco(Cidade cidade,
                     String bairro,
@@ -36,5 +40,16 @@ public class Endereco extends EntityID{
         this.numero = numero;
         this.complemento = complemento;
         this.cep = cep;
+    }
+
+    public static Endereco paraEntidade(AlunoRequestDTO requestDTO, Cidade cidade){
+        return new Endereco(
+                cidade,
+                requestDTO.bairro(),
+                requestDTO.rua(),
+                requestDTO.numero(),
+                requestDTO.complemento(),
+                requestDTO.cep()
+        );
     }
 }

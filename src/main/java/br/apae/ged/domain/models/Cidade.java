@@ -13,5 +13,11 @@ public class Cidade {
     @ManyToOne
     @JoinColumn(name = "estado_id")
     private Estado estado;
+    @Column(unique = true)
     private String ibge;
+
+    public Cidade(Cidade cidade) {
+    }
+
+    public Cidade(){}
 }
