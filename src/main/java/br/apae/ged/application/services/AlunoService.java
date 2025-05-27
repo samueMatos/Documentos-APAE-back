@@ -1,14 +1,18 @@
 package br.apae.ged.application.services;
 
+import br.apae.ged.application.dto.aluno.AlunoByIdResponse;
 import br.apae.ged.application.dto.aluno.AlunoRequestDTO;
+import br.apae.ged.application.dto.aluno.AlunoResponseDTO;
 import br.apae.ged.application.exceptions.NotFoundException;
 import br.apae.ged.domain.models.Alunos;
 import br.apae.ged.domain.models.Endereco;
 import br.apae.ged.domain.repositories.AlunoRepository;
+import br.apae.ged.domain.repositories.CidadeRepository;
 import br.apae.ged.domain.repositories.EnderecoRepository;
 import br.apae.ged.domain.repositories.specifications.AlunoSpecification;
 import br.apae.ged.application.strategy.NewAlunoValidationStrategy;
 import br.apae.ged.domain.utils.AuthenticationUtil;
+import br.apae.ged.domain.valueObjects.CPF;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,42 +29,54 @@ public class AlunoService {
     private final AlunoRepository alunoRepository;
     private final EnderecoRepository enderecoRepository;
     private final List<NewAlunoValidationStrategy> alunoValidationStrategies;
+    private final CidadeRepository cidadeRepository;
 
-    public Alunos create(AlunoRequestDTO request){
+    public Alunos create(AlunoRequestDTO request) {
 
-        alunoValidationStrategies.forEach(validation -> validation.validate(request));
+        //alunoValidationStrategies.forEach(validation -> validation.validate(request));
 
-        Alunos aluno = AlunoRequestDTO.alunoFromEntity(request);
+        CPF cpf = new CPF(request.cpf());
+
+        var cidade = cidadeRepository.findByIbge(request.ibge())
+                .orElseThrow(() -> new NotFoundException("Cidade não encontrada"));
+
+        Alunos aluno = Alunos.paraEntidade(request);
         aluno.setCreatedBy(AuthenticationUtil.retriveAuthenticatedUser());
+        aluno.setCpf(cpf);
         aluno.setIsAtivo(true);
         alunoRepository.save(aluno);
 
-        Endereco endereco = AlunoRequestDTO.enderecoFromEntity(request);
+        Endereco endereco = Endereco.paraEntidade(request, cidade);
         endereco.setAluno(aluno);
         enderecoRepository.save(endereco);
 
         return aluno;
     }
 
-    public Page<Alunos> findAll(String cpf, String cpfResponsavel, String nome, Pageable pageable){
+    public Page<AlunoResponseDTO> findAll(String cpf, String cpfResponsavel, String nome, Pageable pageable) {
         var spec = Specification
                 .where(AlunoSpecification.isAtivo())
                 .and(AlunoSpecification.byCpf(cpf))
                 .and(AlunoSpecification.byCpfResponsavel(cpfResponsavel))
                 .and(AlunoSpecification.byNome(nome));
 
-        return alunoRepository.findAll(spec, pageable);
+        return alunoRepository.findAll(spec, pageable).map(AlunoResponseDTO::fromEntity);
     }
 
-    public Alunos byID(Long id){
-        return alunoRepository.findById(id).orElseThrow(() -> new NotFoundException("Aluno não encontrado"));
+    public AlunoByIdResponse byID(Long id) {
+         var aluno = alunoRepository.findById(id)
+                 .orElseThrow(() -> new NotFoundException("Aluno não encontrado"));
+         var endereco = enderecoRepository.findByAluno(aluno);
+
+         AlunoByIdResponse responseDTO = AlunoByIdResponse.fromEntity(aluno, endereco);
+         return responseDTO;
     }
 
-    public void changeStatusAluno(Long id){
+    public void changeStatusAluno(Long id) {
         Alunos byId = alunoRepository.findById(id).orElseThrow(() -> new NotFoundException("Aluno não encontrado"));
         byId.setUpdatedAt(LocalDateTime.now());
 
-        if (!byId.getIsAtivo()){
+        if (!byId.getIsAtivo()) {
             byId.setIsAtivo(true);
             alunoRepository.save(byId);
             return;
@@ -71,18 +87,20 @@ public class AlunoService {
     }
 
 
-    public Alunos update(Long id, AlunoRequestDTO updated){
+    public Alunos update(Long id, AlunoRequestDTO atualizacao) {
 
         Alunos byID = alunoRepository.findById(id).orElseThrow(() -> new NotFoundException("Aluno não encontrado"));
+        var cidade = cidadeRepository.findByIbge(atualizacao.ibge())
+                .orElseThrow(() -> new NotFoundException("Cidade não encontrada"));
 
-        byID.setNome(updated.nome());
-        byID.setDataNascimento(updated.dataNascimento());
-        byID.setSexo(updated.sexo());
-        byID.setCpf(updated.cpf());
-        byID.setTelefone(updated.telefone());
-        byID.setCpfResponsavel(updated.cpfResponsavel());
-        byID.setDeficiencia(updated.deficiencia());
-        byID.setObservacoes(updated.observacoes());
+        byID.setNome(atualizacao.nome());
+        byID.setDataNascimento(atualizacao.dataNascimento());
+        byID.setSexo(atualizacao.sexo());
+        byID.setCpf(new CPF(atualizacao.cpf()));
+        byID.setTelefone(atualizacao.telefone());
+        byID.setCpfResponsavel(atualizacao.cpfResponsavel());
+        byID.setDeficiencia(atualizacao.deficiencia());
+        byID.setObservacoes(atualizacao.observacoes());
         byID.setCreatedBy(byID.getCreatedBy());
         byID.setCreatedAt(byID.getCreatedAt());
         byID.setUpdatedBy(AuthenticationUtil.retriveAuthenticatedUser());
@@ -90,12 +108,11 @@ public class AlunoService {
 
         Endereco endereco = enderecoRepository.findByAluno(byID);
 
-        endereco.setEstado(updated.estado());
-        endereco.setCidade(updated.cidade());
-        endereco.setBairro(updated.bairro());
-        endereco.setRua(updated.rua());
-        endereco.setNumero(updated.numero());
-        endereco.setCep(updated.cep());
+        endereco.setBairro(atualizacao.bairro());
+        endereco.setRua(atualizacao.rua());
+        endereco.setNumero(atualizacao.numero());
+        endereco.setCep(atualizacao.cep());
+        endereco.setCidade(cidade);
         endereco.setAluno(byID);
 
         enderecoRepository.save(endereco);

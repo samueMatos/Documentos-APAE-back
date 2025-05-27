@@ -1,5 +1,7 @@
 package br.apae.ged.domain.models;
 
+import br.apae.ged.application.dto.aluno.AlunoRequestDTO;
+import br.apae.ged.domain.valueObjects.CPF;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,12 +21,13 @@ import java.time.LocalDateTime;
         @Index(name = "cpf_idx", columnList = "cpf"),
         @Index(name = "cpf_responsavel_idx", columnList = "cpf_responsavel")
 })
-public class Alunos extends EntityID{
+public class Alunos extends EntityID {
 
     private String nome;
     private LocalDate dataNascimento;
     private String sexo;
-    private String cpf;
+    @Embedded
+    private CPF cpf;
     private String telefone;
     private String cpfResponsavel;
     private String deficiencia;
@@ -50,14 +53,14 @@ public class Alunos extends EntityID{
 
 
     public Alunos(String nome,
-                 LocalDate dataNascimento,
-                 String sexo,
-                 String cpf,
-                 String telefone,
-                 String cpfResponsavel,
-                 String deficiencia,
-                 LocalDate dataEntrada,
-                 String observacoes) {
+                  LocalDate dataNascimento,
+                  String sexo,
+                  CPF cpf,
+                  String telefone,
+                  String cpfResponsavel,
+                  String deficiencia,
+                  LocalDate dataEntrada,
+                  String observacoes) {
         this.nome = nome;
         this.dataNascimento = dataNascimento;
         this.sexo = sexo;
@@ -68,5 +71,19 @@ public class Alunos extends EntityID{
         this.dataEntrada = dataEntrada;
         this.createdAt = LocalDateTime.now();
         this.observacoes = observacoes;
+    }
+
+    public static Alunos paraEntidade(AlunoRequestDTO request) {
+        return new Alunos(
+                request.nome(),
+                request.dataNascimento(),
+                request.sexo(),
+                new CPF(request.cpf()),
+                request.telefone(),
+                request.cpfResponsavel(),
+                request.deficiencia(),
+                LocalDate.now(),
+                request.observacoes()
+        );
     }
 }
