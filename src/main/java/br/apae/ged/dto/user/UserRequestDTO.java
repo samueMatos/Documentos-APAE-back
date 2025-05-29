@@ -7,7 +7,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 public record UserRequestDTO(String nome,
                              String email,
                              String username,
-                             String password) {
+                             String password,
+                             Long groupId) {
 
     public static User toEntity(UserRequestDTO request){
         return new User(
@@ -15,5 +16,8 @@ public record UserRequestDTO(String nome,
                 request.email(),
                 new BCryptPasswordEncoder().encode(request.password())
         );
+    }
+    public Long groupId() {
+        return this.groupId;
     }
 }

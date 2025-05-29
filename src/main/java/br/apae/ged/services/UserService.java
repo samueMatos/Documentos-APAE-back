@@ -7,7 +7,9 @@ import br.apae.ged.dto.user.UserRequestDTO;
 import br.apae.ged.dto.user.UserResponse;
 import br.apae.ged.exceptions.NotFoundException;
 import br.apae.ged.models.User;
+import br.apae.ged.models.UserGroup;
 import br.apae.ged.repositories.UserRepository;
+import br.apae.ged.repositories.UserGroupRepository;
 import br.apae.ged.strategy.NewUserValidationStrategy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,8 +17,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -27,13 +27,16 @@ public class UserService {
     private final AuthenticationManager authenticationManager;
     private final TokenService tokenService;
     private final List<NewUserValidationStrategy> userValidationStrategies;
+    private final UserGroupRepository userGroupRepository;
 
     public UserResponse register(UserRequestDTO entity){
 
         userValidationStrategies.forEach(validation -> validation.validate(entity));
 
         User user = UserRequestDTO.toEntity(entity);
-        user.setRoles(Collections.singletonList());
+        UserGroup group = userGroupRepository.findById(entity.groupId())
+            .orElseThrow(() -> new NotFoundException("Grupo não encontrado"));
+        user.setUserGroup(group);
         user.setIsAtivo(true);
         var save = userRepository.save(user);
         return UserResponse.fromEntity(save);
@@ -59,26 +62,4 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public void setAdminRole(Long userID){
-        User user = userRepository.findById(userID).orElseThrow(() ->  new NotFoundException("Usuário não encontrado"));
-
-        List<Roles> roles = new ArrayList<>();
-
-        roles.add(roleService.retrieve("ROLE_USER"));
-        roles.add(roleService.retrieve("ROLE_ADMIN"));
-
-        user.setRoles(roles);
-
-        userRepository.save(user);
-    }
-
-    public void removeAdminRole(Long userID){
-        User user = userRepository.findById(userID).orElseThrow(() ->  new NotFoundException("Usuário não encontrado"));
-
-        List<Roles> roles = new ArrayList<>();
-
-        roles.add(roleService.retrieve("ROLE_USER"));
-        user.setRoles(roles);
-        userRepository.save(user);
-    }
 }
