@@ -6,7 +6,6 @@ import br.apae.ged.dto.user.UserLoginResponseDTO;
 import br.apae.ged.dto.user.UserRequestDTO;
 import br.apae.ged.dto.user.UserResponse;
 import br.apae.ged.exceptions.NotFoundException;
-import br.apae.ged.models.Roles;
 import br.apae.ged.models.User;
 import br.apae.ged.repositories.UserRepository;
 import br.apae.ged.strategy.NewUserValidationStrategy;
@@ -25,7 +24,6 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final RoleService roleService;
     private final AuthenticationManager authenticationManager;
     private final TokenService tokenService;
     private final List<NewUserValidationStrategy> userValidationStrategies;
@@ -35,7 +33,7 @@ public class UserService {
         userValidationStrategies.forEach(validation -> validation.validate(entity));
 
         User user = UserRequestDTO.toEntity(entity);
-        user.setRoles(Collections.singletonList(roleService.retrieve("ROLE_USER")));
+        user.setRoles(Collections.singletonList());
         user.setIsAtivo(true);
         var save = userRepository.save(user);
         return UserResponse.fromEntity(save);

@@ -29,12 +29,9 @@ public class User extends EntityID implements UserDetails{
     @JoinTable(name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "roles_id"))
-    private List<Roles> roles;
+    
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return roles;
-    }
+    
 
     @Override
     public String getPassword() {
