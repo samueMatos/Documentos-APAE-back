@@ -61,5 +61,11 @@ public class UserService {
 
         userRepository.save(user);
     }
+    public List<String> getAllGroups() {
+        return userGroupRepository.findAll().stream()
+                .map(UserGroup::getName)
+                .toList();
+    }
+    
 
 }
