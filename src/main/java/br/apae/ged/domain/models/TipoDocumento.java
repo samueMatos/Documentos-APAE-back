@@ -35,6 +35,6 @@ public class TipoDocumento extends EntityID  {
         private String nome;
 
         @Column(name = "validade")
-        private Date validade;
+        private LocalDateTime validade;
 
 }

@@ -1,8 +1,8 @@
 package br.apae.ged.application.dto.tipoDocumento;
 
-import java.sql.Date;
+import java.time.LocalDateTime;
 
 public record TipoDocumentoRequest (
         String nome,
-        Date validade
+        LocalDateTime validade
 ){}

@@ -8,18 +8,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/health")
+@Tag(name = "Saúde", description = "Endpoints para verificação de saúde da aplicação")
 public class HealthChecker {
 
     @GetMapping("/checker1")
-    @Tag(name = "Saúde")
-    @Operation(summary = "Este endpoint deve retornar uma String escrito 'OK 1'")
-    public String checker(){
+    @Operation(summary = "Verificador de saúde 1", description = "Este endpoint deve retornar uma String escrito 'OK'")
+    public String checker() {
         return "OK";
     }
 
     @GetMapping("/checker2")
-    @Tag(name = "Saúde")
-    public String checker2(){
+    @Operation(summary = "Verificador de saúde 2", description = "Este endpoint deve retornar uma String escrito 'OK 2'")
+    public String checker2() {
         return "OK 2";
     }
 }

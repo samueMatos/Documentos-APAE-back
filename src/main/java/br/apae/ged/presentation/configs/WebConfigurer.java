@@ -1,6 +1,5 @@
 package br.apae.ged.presentation.configs;
 
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,10 +44,10 @@ public class WebConfigurer {
                                 "/swagger-ui/**",
                                 "/api-docs/**",
                                 "/swagger-resources/**",
-                                "/webjars/**"
-                        ).permitAll()
+                                "/webjars/**")
+                        .permitAll()
                         .anyRequest().authenticated())
-                        .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
@@ -71,7 +70,7 @@ public class WebConfigurer {
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder(){
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 }
