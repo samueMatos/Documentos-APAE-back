@@ -29,8 +29,6 @@ public class Alunos extends EntityID {
     @Embedded
     private CPF cpf;
     private String telefone;
-    private String cpfResponsavel;
-    private String deficiencia;
     private LocalDate dataEntrada;
     private Boolean isAtivo;
     private String observacoes;
@@ -52,22 +50,14 @@ public class Alunos extends EntityID {
     private LocalDateTime updatedAt;
 
 
-    public Alunos(String nome,
-                  LocalDate dataNascimento,
-                  String sexo,
-                  CPF cpf,
-                  String telefone,
-                  String cpfResponsavel,
-                  String deficiencia,
-                  LocalDate dataEntrada,
-                  String observacoes) {
+    public Alunos(String nome, LocalDate dataNascimento,
+                  String sexo, CPF cpf, String telefone,
+                  LocalDate dataEntrada, String observacoes) {
         this.nome = nome;
         this.dataNascimento = dataNascimento;
         this.sexo = sexo;
         this.cpf = cpf;
         this.telefone = telefone;
-        this.cpfResponsavel = cpfResponsavel;
-        this.deficiencia = deficiencia;
         this.dataEntrada = dataEntrada;
         this.createdAt = LocalDateTime.now();
         this.observacoes = observacoes;
@@ -80,10 +70,19 @@ public class Alunos extends EntityID {
                 request.sexo(),
                 new CPF(request.cpf()),
                 request.telefone(),
-                request.cpfResponsavel(),
-                request.deficiencia(),
-                LocalDate.now(),
+                request.dataEntrada(),
                 request.observacoes()
         );
+    }
+
+    public void atualizarDados(AlunoRequestDTO atualizacao, User usuarioAutenticado) {
+        this.setNome(atualizacao.nome());
+        this.setDataNascimento(atualizacao.dataNascimento());
+        this.setSexo(atualizacao.sexo());
+        this.setCpf(new CPF(atualizacao.cpf()));
+        this.setTelefone(atualizacao.telefone());
+        this.setObservacoes(atualizacao.observacoes());
+        this.setUpdatedBy(usuarioAutenticado);
+        this.setUpdatedAt(LocalDateTime.now());
     }
 }

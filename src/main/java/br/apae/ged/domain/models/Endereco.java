@@ -14,7 +14,6 @@ import lombok.*;
 @Entity(name = "tb_endereco")
 public class Endereco extends EntityID{
 
-
     private String bairro;
     private String rua;
     private int numero;
@@ -51,5 +50,14 @@ public class Endereco extends EntityID{
                 requestDTO.complemento(),
                 requestDTO.cep()
         );
+    }
+
+    public void atualizarDados(AlunoRequestDTO atualizacao, Cidade cidade) {
+        this.setBairro(atualizacao.bairro());
+        this.setRua(atualizacao.rua());
+        this.setNumero(atualizacao.numero());
+        this.setCep(atualizacao.cep());
+        this.setCidade(cidade);
+        this.setComplemento(atualizacao.complemento());
     }
 }

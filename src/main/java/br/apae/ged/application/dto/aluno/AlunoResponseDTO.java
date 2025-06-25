@@ -8,17 +8,14 @@ public record AlunoResponseDTO(
         Long id,
         String nome,
         LocalDate dataNascimento,
-        String cpf,
-        String cpfResponsavel
+        String cpf
 ) {
-
-    public static AlunoResponseDTO fromEntity(Alunos alunos){
+    public static AlunoResponseDTO daEntidade(Alunos alunos){
         return new AlunoResponseDTO(
                 alunos.getId(),
                 alunos.getNome(),
                 alunos.getDataNascimento(),
-                alunos.getCpf().getCpf(),
-                alunos.getCpfResponsavel()
+                alunos.getCpf().getCpf()
         );
     }
 }

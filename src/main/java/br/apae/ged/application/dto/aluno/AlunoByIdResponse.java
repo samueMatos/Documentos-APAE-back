@@ -11,29 +11,30 @@ public record AlunoByIdResponse(
         String sexo,
         String cpf,
         String telefone,
-        String deficiencia,
-        String cpfResponsavel,
+        String observacoes,
+        LocalDate dataEntrada,
         String estado,
         String cidade,
         String bairro,
         String rua,
+        Integer numero,
         String complemento,
         String cep
-
 ) {
-    public static AlunoByIdResponse fromEntity(Alunos aluno, Endereco endereco) {
+    public static AlunoByIdResponse daEntidade(Alunos aluno, Endereco endereco) {
         return new AlunoByIdResponse(
                 aluno.getNome(),
                 aluno.getDataNascimento(),
                 aluno.getSexo(),
                 aluno.getCpf().getCpf(),
                 aluno.getTelefone(),
-                aluno.getDeficiencia(),
-                aluno.getCpfResponsavel(),
+                aluno.getObservacoes(),
+                aluno.getDataEntrada(),
                 endereco.getCidade().getEstado().getNome(),
                 endereco.getCidade().getNome(),
                 endereco.getBairro(),
                 endereco.getRua(),
+                endereco.getNumero(),
                 endereco.getComplemento(),
                 endereco.getCep()
         );
