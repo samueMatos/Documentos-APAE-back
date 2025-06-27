@@ -6,9 +6,12 @@ import br.apae.ged.application.dto.user.UserRequestDTO;
 import br.apae.ged.application.dto.user.UserResponse;
 import br.apae.ged.application.services.UserService;
 import lombok.RequiredArgsConstructor;
+
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
 
 @RestController
 @RequestMapping("/user")
@@ -27,22 +30,18 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.login(entity));
     }
 
-    @PutMapping("/setAdmin/{id}")
-    public ResponseEntity<Void> setAdminRole(@PathVariable("id")Long id){
-        service.setAdminRole(id);
-        return ResponseEntity.ok().build();
-    }
+        @DeleteMapping("/{id}")
+        public ResponseEntity<Void> desativarUser(@PathVariable("id")Long id){
+            service.changeStatusUser(id);
+            return ResponseEntity.ok().build();
+        }
 
-    @PutMapping("/removeAdmin/{id}")
-    public ResponseEntity<Void> removeAdminRole(@PathVariable("id")Long id){
-        service.removeAdminRole(id);
-        return ResponseEntity.ok().build();
-    }
+        
+        @GetMapping("/group")
+        public ResponseEntity<List<String>> getAllGroups() {
+            List<String> groups = service.getAllGroups();
+            return ResponseEntity.ok(groups);
+        }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> desativarUser(@PathVariable("id")Long id){
-        service.changeStatusUser(id);
-        return ResponseEntity.ok().build();
-    }
 
 }

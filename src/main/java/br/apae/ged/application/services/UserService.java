@@ -6,9 +6,10 @@ import br.apae.ged.application.dto.user.UserLoginResponseDTO;
 import br.apae.ged.application.dto.user.UserRequestDTO;
 import br.apae.ged.application.dto.user.UserResponse;
 import br.apae.ged.application.exceptions.NotFoundException;
-import br.apae.ged.domain.models.Roles;
 import br.apae.ged.domain.models.User;
 import br.apae.ged.domain.repositories.UserRepository;
+import br.apae.ged.domain.models.UserGroup;
+import br.apae.ged.domain.repositories.UserGroupRepository;
 import br.apae.ged.application.strategy.NewUserValidationStrategy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,8 +17,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -25,17 +24,19 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final RoleService roleService;
     private final AuthenticationManager authenticationManager;
     private final TokenService tokenService;
     private final List<NewUserValidationStrategy> userValidationStrategies;
+    private final UserGroupRepository userGroupRepository;
 
     public UserResponse register(UserRequestDTO entity){
 
         userValidationStrategies.forEach(validation -> validation.validate(entity));
 
         User user = UserRequestDTO.toEntity(entity);
-        user.setRoles(Collections.singletonList(roleService.retrieve("ROLE_USER")));
+        UserGroup group = userGroupRepository.findById(entity.groupId())
+            .orElseThrow(() -> new NotFoundException("Grupo não encontrado"));
+        user.setUserGroup(group);
         user.setIsAtivo(true);
         var save = userRepository.save(user);
         return UserResponse.fromEntity(save);
@@ -60,27 +61,11 @@ public class UserService {
 
         userRepository.save(user);
     }
-
-    public void setAdminRole(Long userID){
-        User user = userRepository.findById(userID).orElseThrow(() ->  new NotFoundException("Usuário não encontrado"));
-
-        List<Roles> roles = new ArrayList<>();
-
-        roles.add(roleService.retrieve("ROLE_USER"));
-        roles.add(roleService.retrieve("ROLE_ADMIN"));
-
-        user.setRoles(roles);
-
-        userRepository.save(user);
+    public List<String> getAllGroups() {
+        return userGroupRepository.findAll().stream()
+                .map(UserGroup::getName)
+                .toList();
     }
+    
 
-    public void removeAdminRole(Long userID){
-        User user = userRepository.findById(userID).orElseThrow(() ->  new NotFoundException("Usuário não encontrado"));
-
-        List<Roles> roles = new ArrayList<>();
-
-        roles.add(roleService.retrieve("ROLE_USER"));
-        user.setRoles(roles);
-        userRepository.save(user);
-    }
 }

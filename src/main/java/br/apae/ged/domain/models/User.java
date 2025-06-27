@@ -25,16 +25,9 @@ public class User extends EntityID implements UserDetails{
     private String password;
     private Boolean isAtivo;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
-    @JoinTable(name = "user_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "roles_id"))
-    private List<Roles> roles;
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return roles;
-    }
+    @ManyToOne
+    @JoinColumn(name = "group_id")
+    private UserGroup userGroup;
 
     @Override
     public String getPassword() {
@@ -50,5 +43,11 @@ public class User extends EntityID implements UserDetails{
         this.nome = nome;
         this.email = email;
         this.password = password;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        if (userGroup == null || userGroup.getPermissions() == null) return List.of();
+        return userGroup.getPermissions();
     }
 }
