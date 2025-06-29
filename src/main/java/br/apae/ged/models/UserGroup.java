@@ -23,12 +23,9 @@ public class UserGroup {
         joinColumns = @JoinColumn(name = "group_id"),
         inverseJoinColumns = @JoinColumn(name = "permission_id")
     )
+    private List<Permission> permissions;
 
     public String getName() {
         return nome;
     }
-    
-
-    private List<Permission> permissions;
-    
 }
