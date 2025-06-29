@@ -10,7 +10,7 @@ public record AlunoResponseDTO(
         LocalDate dataNascimento,
         String cpf
 ) {
-    public static AlunoResponseDTO daEntidade(Alunos alunos){
+    public static AlunoResponseDTO fromEntity(Alunos alunos){
         return new AlunoResponseDTO(
                 alunos.getId(),
                 alunos.getNome(),

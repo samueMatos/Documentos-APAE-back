@@ -18,8 +18,7 @@ import java.time.LocalDateTime;
 @Entity(name = "tb_aluno")
 @Table(indexes = {
         @Index(name = "nome_idx", columnList = "nome"),
-        @Index(name = "cpf_idx", columnList = "cpf"),
-        @Index(name = "cpf_responsavel_idx", columnList = "cpf_responsavel")
+        @Index(name = "cpf_idx", columnList = "cpf")
 })
 public class Alunos extends EntityID {
 
