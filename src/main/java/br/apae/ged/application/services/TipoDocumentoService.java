@@ -22,7 +22,7 @@ public class TipoDocumentoService {
     public TipoDocumentoResponse create(TipoDocumentoRequest request) {
         TipoDocumento tipoDocumento = new TipoDocumento();
         tipoDocumento.setNome(request.nome());
-        tipoDocumento.setValidade(request.validade());
+        tipoDocumento.setValidadeEmDias(request.validadeEmDias());
         tipoDocumento.setUsuario(AuthenticationUtil.retriveAuthenticatedUser());
         tipoDocumento.setDataRegistro(LocalDateTime.now());
 
@@ -47,7 +47,7 @@ public class TipoDocumentoService {
                 .orElseThrow(() -> new NotFoundException("Tipo de Documento não encontrado com o id: " + id));
 
         tipoDocumento.setNome(request.nome());
-        tipoDocumento.setValidade(request.validade());
+        tipoDocumento.setValidadeEmDias(request.validadeEmDias());
         tipoDocumento.setUsuarioAlteracao(AuthenticationUtil.retriveAuthenticatedUser());
         tipoDocumento.setDataAlteracao(LocalDateTime.now());
 

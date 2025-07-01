@@ -11,7 +11,7 @@ public record TipoDocumentoResponse(
         String usuarioAlteracao,
         LocalDateTime dataAlteracao,
         LocalDateTime dataRegistro,
-        LocalDateTime validade) {
+        Integer validadeEmDias) {
 
     public TipoDocumentoResponse(TipoDocumento tipoDocumento) {
         this(
@@ -21,6 +21,6 @@ public record TipoDocumentoResponse(
                 tipoDocumento.getUsuarioAlteracao() != null ? tipoDocumento.getUsuarioAlteracao().getNome() : null,
                 tipoDocumento.getDataAlteracao(),
                 tipoDocumento.getDataRegistro(),
-                tipoDocumento.getValidade());
+                tipoDocumento.getValidadeEmDias());
     }
 }
