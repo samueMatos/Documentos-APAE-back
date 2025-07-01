@@ -2,17 +2,20 @@ package br.apae.ged.application.dto.aluno;
 
 import br.apae.ged.domain.models.Alunos;
 
-public record AlunoResponseDTO(
-        String nome,
-        String cpf,
-        String deficiencia
-) {
+import java.time.LocalDate;
 
+public record AlunoResponseDTO(
+        Long id,
+        String nome,
+        LocalDate dataNascimento,
+        String cpf
+) {
     public static AlunoResponseDTO fromEntity(Alunos alunos){
         return new AlunoResponseDTO(
+                alunos.getId(),
                 alunos.getNome(),
-                alunos.getCpf(),
-                alunos.getDeficiencia()
+                alunos.getDataNascimento(),
+                alunos.getCpf().getCpf()
         );
     }
 }
