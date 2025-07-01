@@ -1,7 +1,6 @@
 package br.apae.ged.domain.models;
 
 import br.apae.ged.domain.models.enums.TipoArquivo;
-import br.apae.ged.domain.models.enums.TipoDocumento;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,7 +29,8 @@ public class Document {
     private LocalDateTime dataDownload;
     private LocalDateTime dataUpdate;
 
-    @Enumerated(EnumType.STRING)
+    @ManyToOne
+    @JoinColumn(name = "document_type_id")
     private TipoDocumento tipoDocumento;
 
     @Enumerated(EnumType.STRING)
