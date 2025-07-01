@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,10 +18,12 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/alunos")
 @RequiredArgsConstructor
 @Tag(name = "Alunos", description = "Gerenciamento de Alunos")
+@PreAuthorize("hasAuthority('ALUNOS')")
 public class AlunoController {
 
     private final AlunoService alunoService;
     private static final Logger logger = LoggerFactory.getLogger(AlunoController.class);
+
 
 
     @PostMapping("/create")

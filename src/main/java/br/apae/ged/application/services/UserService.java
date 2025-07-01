@@ -67,7 +67,7 @@ public class UserService {
     }
     public List<String> getAllGroups() {
         return userGroupRepository.findAll().stream()
-                .map(UserGroup::getName)
+                .map(UserGroup::getNome)
                 .toList();
     }
     
