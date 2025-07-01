@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,9 +15,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/alunos")
 @RequiredArgsConstructor
+
+@PreAuthorize("hasAuthority('ALUNOS')")
 public class AlunoController {
 
     private final AlunoService alunoService;
+
 
     @PostMapping("/create")
     public ResponseEntity<Alunos> post(@RequestBody AlunoRequestDTO request){

@@ -10,6 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@EqualsAndHashCode(of = "id")
 @Entity(name = "tb_user_groups")
 public class UserGroup {
     @Id
@@ -24,8 +25,4 @@ public class UserGroup {
         inverseJoinColumns = @JoinColumn(name = "permission_id")
     )
     private List<Permission> permissions;
-
-    public String getName() {
-        return nome;
-    }
 }
