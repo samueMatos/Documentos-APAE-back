@@ -1,5 +1,7 @@
 package br.apae.ged.application.services;
 
+import br.apae.ged.application.dto.ChangePasswordDTO;
+import br.apae.ged.domain.utils.AuthenticationUtil;
 import br.apae.ged.presentation.configs.TokenService;
 import br.apae.ged.application.dto.user.UserLoginDTO;
 import br.apae.ged.application.dto.user.UserLoginResponseDTO;
@@ -11,9 +13,11 @@ import br.apae.ged.domain.repositories.UserRepository;
 import br.apae.ged.domain.models.UserGroup;
 import br.apae.ged.domain.repositories.UserGroupRepository;
 import br.apae.ged.application.strategy.NewUserValidationStrategy;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;

@@ -1,5 +1,6 @@
 package br.apae.ged.presentation.controllers;
 
+import br.apae.ged.application.dto.ChangePasswordDTO;
 import br.apae.ged.application.dto.user.UserLoginDTO;
 import br.apae.ged.application.dto.user.UserLoginResponseDTO;
 import br.apae.ged.application.dto.user.UserRequestDTO;
@@ -56,4 +57,11 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
+    @PutMapping("/change-password") //ALTERADO ERICK
+    public ResponseEntity<Void> changePassword(@RequestBody @Valid ChangePasswordDTO changePasswordDTO) { // Adicionado @Valid (opcional)
+        service.changeUserPassword(changePasswordDTO);
+        return ResponseEntity.ok().build();
+    }
+
+}
 }
