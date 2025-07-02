@@ -8,6 +8,7 @@ import br.apae.ged.application.dto.user.UserResponse;
 import br.apae.ged.application.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 
@@ -37,20 +38,6 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.login(entity));
     }
 
-    @PutMapping("/setAdmin/{id}")
-    @Operation(summary = "Concede permissão de Admin", description = "Atribui a permissão 'ROLE_ADMIN' a um usuário. Requer permissão de ADMIN.")
-    public ResponseEntity<Void> setAdminRole(@PathVariable("id") Long id) {
-        service.setAdminRole(id);
-        return ResponseEntity.ok().build();
-    }
-
-    @PutMapping("/removeAdmin/{id}")
-    @Operation(summary = "Remove permissão de Admin", description = "Remove a permissão 'ROLE_ADMIN' de um usuário. Requer permissão de ADMIN.")
-    public ResponseEntity<Void> removeAdminRole(@PathVariable("id") Long id) {
-        service.removeAdminRole(id);
-        return ResponseEntity.ok().build();
-    }
-
     @DeleteMapping("/{id}")
     @Operation(summary = "Ativa/Desativa um usuário", description = "Altera o status de um usuário para ativo ou inativo. Requer permissão de ADMIN.")
     public ResponseEntity<Void> desativarUser(@PathVariable("id") Long id) {
@@ -65,4 +52,4 @@ public class UserController {
     }
 
 }
-}
+

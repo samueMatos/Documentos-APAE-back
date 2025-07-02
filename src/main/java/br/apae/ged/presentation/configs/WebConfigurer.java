@@ -41,9 +41,10 @@ public class WebConfigurer {
                         .requestMatchers(HttpMethod.DELETE, "/user/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/user/removeAdmin/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/user/setAdmin/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/user/group").hasRole("ADMIN")
                         .requestMatchers(
                                 "/auth/**",
-                                "/swagger-ui/**",
+                              "/swagger-ui/**",
                                 "/api-docs/**",
                                 "/swagger-resources/**",
                                 "/webjars/**")

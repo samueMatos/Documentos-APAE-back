@@ -1,4 +1,4 @@
-package br.apae.ged.application.controllers;
+package br.apae.ged.presentation.controllers;
 
 import br.apae.ged.domain.models.Permission;
 import br.apae.ged.application.services.PermissionService;
