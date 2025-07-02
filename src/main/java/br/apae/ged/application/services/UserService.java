@@ -17,11 +17,13 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -47,10 +49,17 @@ public class UserService {
         return UserResponse.fromEntity(save);
     }
 
-    public UserLoginResponseDTO login(UserLoginDTO user) {
-        var usernamePassword = new UsernamePasswordAuthenticationToken(user.email(), user.password());
+    public UserLoginResponseDTO login(UserLoginDTO userLoginDetails) {
+        var usernamePassword = new UsernamePasswordAuthenticationToken(userLoginDetails.email(), userLoginDetails.password());
         var auth = authenticationManager.authenticate(usernamePassword);
-        return new UserLoginResponseDTO(tokenService.generateToken((User) auth.getPrincipal()), LocalDateTime.now().plusMinutes(120));
+        var user = (User) auth.getPrincipal();
+        var token = tokenService.generateToken(user);
+        var expiresAt = LocalDateTime.now().plusMinutes(120);
+        List<String> permissions = user.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        return new UserLoginResponseDTO(token, expiresAt, permissions);
     }
 
     public void changeStatusUser(Long id) {

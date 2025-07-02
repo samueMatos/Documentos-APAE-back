@@ -25,9 +25,9 @@ import java.util.List;
 public class UserController {
 
     private final UserService service;
-
     @PostMapping("/register")
-    @Operation(summary = "Registra um novo usuário", description = "Cria um novo usuário no sistema com a permissão padrão 'ROLE_USER'.")
+    @Operation(summary = "Registra um novo usuário", description = "Cria um novo usuário no sistema.")
+    @PreAuthorize("hasAuthority('GERENCIAR_USUARIO')")
     public ResponseEntity<UserResponse> register(@RequestBody UserRequestDTO entity) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.register(entity));
     }
@@ -38,8 +38,11 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.login(entity));
     }
 
+
+
     @DeleteMapping("/{id}")
-    @Operation(summary = "Ativa/Desativa um usuário", description = "Altera o status de um usuário para ativo ou inativo. Requer permissão de ADMIN.")
+    @Operation(summary = "Ativa/Desativa um usuário", description = "Altera o status de um usuário para ativo ou inativo.")
+    @PreAuthorize("hasAuthority('GERENCIAR_USUARIO')")
     public ResponseEntity<Void> desativarUser(@PathVariable("id") Long id) {
         service.changeStatusUser(id);
         return ResponseEntity.ok().build();

@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/tipo-documento")
 @RequiredArgsConstructor
+@PreAuthorize("hasAuthority('TIPO_DOCUMENTO')")
 @Tag(name = "Tipos de Documento", description = "Endpoints para gerenciamento dos tipos de documento")
 public class TipoDocumentoController {
 
