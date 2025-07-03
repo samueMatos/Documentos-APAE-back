@@ -5081,11 +5081,16 @@ INSERT INTO tb_user_groups (id, nome) VALUES
 (1, 'SUPER ADMIN')
 ON CONFLICT DO NOTHING;
 
-INSERT INTO group_permissions (group_id, permission_id) VALUES
-(1, 1),
-(1, 2),
-(1, 3),
-(1, 4),
-(1, 5),
-(1, 6)
-ON CONFLICT DO NOTHING;
+INSERT INTO group_permissions (group_id, permission_id)
+SELECT * FROM (
+    VALUES
+        (1, 1),
+        (1, 2),
+        (1, 3),
+        (1, 4),
+        (1, 5),
+        (1, 6)
+) AS vals(group_id, permission_id)
+WHERE NOT EXISTS (
+    SELECT 1 FROM group_permissions WHERE group_id = 1
+);

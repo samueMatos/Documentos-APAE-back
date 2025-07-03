@@ -69,6 +69,8 @@ public class UserService {
                 UserGroup group = userGroupRepository.findById(userDTO.groupId())
                         .orElseThrow(() -> new NotFoundException("Grupo não encontrado"));
 
+                user.setUserGroup(group);
+                
                 user.setIsAtivo(true);
 
                 userRepository.save(user);

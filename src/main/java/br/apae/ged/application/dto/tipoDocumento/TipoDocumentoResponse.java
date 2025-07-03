@@ -11,7 +11,7 @@ public record TipoDocumentoResponse(
         String usuarioAlteracao,
         LocalDateTime dataAlteracao,
         LocalDateTime dataRegistro,
-        LocalDateTime validade) {
+        Integer validade) {
 
     public TipoDocumentoResponse(TipoDocumento tipoDocumento) {
         this(

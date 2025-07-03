@@ -1,6 +1,5 @@
 package br.apae.ged.domain.models;
 
-import java.sql.Date;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
@@ -35,6 +34,6 @@ public class TipoDocumento extends EntityID  {
         private String nome;
 
         @Column(name = "validade")
-        private LocalDateTime validade;
+        private Integer validade;
 
 }
