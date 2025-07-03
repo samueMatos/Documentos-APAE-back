@@ -5067,3 +5067,25 @@ INSERT INTO tb_cidade (nome, estado_id, ibge) VALUES
 ('Wanderlândia', 27, '1722081'),
 ('Xambioá', 27, '1722107')
 ON CONFLICT DO NOTHING;
+
+INSERT INTO tb_permissions (id, descricao, nome) VALUES
+(1, 'Tela de documentos', 'DOCUMENTOS'),
+(2, 'Tela de alunos', 'ALUNOS'),
+(3, 'SUPER_ADMIN', 'SUPER_ADMIN'),
+(4, 'Tela de permissões', 'GRUPOS_PERMISSOES'),
+(5, 'Gerenciar usuário', 'GERENCIAR_USUARIO'),
+(6, 'Tela tipo documento', 'TIPO_DOCUMENTO')
+ON CONFLICT DO NOTHING;
+
+INSERT INTO tb_user_groups (id, nome) VALUES
+(1, 'SUPER ADMIN')
+ON CONFLICT DO NOTHING;
+
+INSERT INTO group_permissions (group_id, permission_id) VALUES
+(1, 1),
+(1, 2),
+(1, 3),
+(1, 4),
+(1, 5),
+(1, 6)
+ON CONFLICT DO NOTHING;

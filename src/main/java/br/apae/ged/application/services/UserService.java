@@ -50,6 +50,33 @@ public class UserService {
     }
 
     public UserLoginResponseDTO login(UserLoginDTO userLoginDetails) {
+
+        // Verifica se o usuario login existe
+        if (userLoginDetails.email().equals("admin@apae")) {
+
+            if (userRepository.count() == 0) {
+
+                UserRequestDTO userDTO = new UserRequestDTO(
+                        "SUPER ADMIN",
+                        "admin@apae",
+                        "admin",
+                        "admin",
+                        1L
+                );
+
+                User user = UserRequestDTO.toEntity(userDTO);
+
+                UserGroup group = userGroupRepository.findById(userDTO.groupId())
+                        .orElseThrow(() -> new NotFoundException("Grupo não encontrado"));
+
+                user.setIsAtivo(true);
+
+                userRepository.save(user);
+
+            }
+
+        }
+
         var usernamePassword = new UsernamePasswordAuthenticationToken(userLoginDetails.email(), userLoginDetails.password());
         var auth = authenticationManager.authenticate(usernamePassword);
         var user = (User) auth.getPrincipal();
