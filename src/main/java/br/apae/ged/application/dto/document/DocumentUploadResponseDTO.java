@@ -1,7 +1,7 @@
 package br.apae.ged.application.dto.document;
 
 public record DocumentUploadResponseDTO(
-        int statusCode,
+        Long id,
         String message
 ) {
 }
