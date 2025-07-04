@@ -1,22 +1,22 @@
 package br.apae.ged.presentation.controllers;
 
 import br.apae.ged.application.dto.document.DocumentRequestDTO;
+import br.apae.ged.application.dto.document.DocumentResponseDTO;
 import br.apae.ged.application.dto.document.DocumentUploadResponseDTO;
 import br.apae.ged.application.services.DocumentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import lombok.RequiredArgsConstructor;
 
-import org.springframework.data.domain.Pageable;
 import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/documentos")
-
 @PreAuthorize("hasAuthority('DOCUMENTOS')")
 @Tag(name = "Documentos", description = "Endpoints para upload, download e gerenciamento de documentos")
 public class DocumentController {
@@ -26,7 +26,7 @@ public class DocumentController {
     @PostMapping(value = "/create/{alunoID}", consumes = "multipart/form-data")
     @Operation(summary = "Upload de um novo documento", description = "Realiza o upload de um arquivo e o associa a um aluno específico.")
     public ResponseEntity<DocumentUploadResponseDTO> post(@ModelAttribute DocumentRequestDTO document,
-            @PathVariable("alunoID") Long id) throws IOException {
+                                                          @PathVariable("alunoID") Long id) throws IOException {
         return ResponseEntity.status(201).body(service.save(document, id));
     }
 
@@ -40,34 +40,26 @@ public class DocumentController {
     }
 
     @GetMapping(value = "/listarUm/{id}")
-    @Operation(summary = "Listar um documento", description = "Retorna um único documento")
-    public ResponseEntity<?> listarUm (@PathVariable Long id) {
+    @Operation(summary = "Listar um documento", description = "Retorna um único documento com seu conteúdo em base64.")
+    public ResponseEntity<?> listarUm(@PathVariable Long id) {
         var documento = service.visualizarUm(id);
         return ResponseEntity.ok(documento);
     }
 
+    @PutMapping(value = "/update/{id}", consumes = "multipart/form-data")
+    @Operation(summary = "Atualiza um documento", description = "Atualiza o tipo de documento ou o arquivo de um documento existente.")
+    public ResponseEntity<DocumentResponseDTO> update(
+            @PathVariable Long id,
+            @ModelAttribute DocumentRequestDTO dto) throws IOException {
+        DocumentResponseDTO updatedDocument = service.update(id, dto);
+        return ResponseEntity.ok(updatedDocument);
+    }
 
-//    @GetMapping("/{id}")
-//    @Operation(summary = "Busca histórico de um documento", description = "Retorna o histórico de versões de um documento específico, limitado às últimas 5 versões.")
-//    public ResponseEntity<List<DocumentResponseDTO>> byID(@PathVariable("id") Long id) {
-//        return ResponseEntity.ok(service.byID(id));
-//    }
-//
-//    @GetMapping("/list")
-//    @Operation(summary = "Lista os documentos", description = "Retorna uma lista com a última versão dos documentos, permitindo filtros por ID do aluno, título do documento ou nome do aluno.")
-//    public ResponseEntity<List<DocumentResponseDTO>> list(@RequestParam(required = false) Long id,
-//            @RequestParam(required = false) String nome,
-//            @RequestParam(required = false) String aluno) {
-//        return ResponseEntity.ok(service.list(id, nome, aluno));
-//    }
-//
-//    @GetMapping("/download/{id}")
-//    @Operation(summary = "Download de um documento", description = "Baixa o arquivo físico de um documento com base no seu ID.")
-//    public ResponseEntity<Resource> downloadFile(@PathVariable("id") Long id) throws MalformedURLException {
-//        Resource resource = service.downloadFile(id);
-//        return ResponseEntity.ok()
-//                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
-//                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-//                .body(resource);
-//    }
+    @DeleteMapping("/delete/{id}")
+    @Operation(summary = "Exclui um documento", description = "Remove um documento permanentemente do sistema com base no seu ID.")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        service.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
 }

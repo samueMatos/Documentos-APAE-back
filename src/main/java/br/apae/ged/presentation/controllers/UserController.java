@@ -12,6 +12,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -40,19 +42,45 @@ public class UserController {
 
 
 
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Ativa/Desativa um usuário", description = "Altera o status de um usuário para ativo ou inativo.")
-    @PreAuthorize("hasAuthority('GERENCIAR_USUARIO')")
-    public ResponseEntity<Void> desativarUser(@PathVariable("id") Long id) {
-        service.changeStatusUser(id);
-        return ResponseEntity.ok().build();
-    }
-
     @PutMapping("/change-password") //ALTERADO ERICK
     public ResponseEntity<Void> changePassword(@RequestBody @Valid ChangePasswordDTO changePasswordDTO) { // Adicionado @Valid (opcional)
         service.changeUserPassword(changePasswordDTO);
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/list")
+    @Operation(summary = "Lista todos os usuários", description = "Retorna uma lista paginada de usuários, com filtro opcional por nome.")
+    @PreAuthorize("hasAuthority('GERENCIAR_USUARIO')")
+    public ResponseEntity<Page<UserResponse>> listAll(
+            Pageable pageable,
+            @RequestParam(required = false) String nome) {
+        Page<UserResponse> users = service.listAll(pageable, nome);
+        return ResponseEntity.ok(users);
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Busca um usuário por ID", description = "Retorna os detalhes de um usuário específico.")
+    @PreAuthorize("hasAuthority('GERENCIAR_USUARIO')")
+    public ResponseEntity<UserResponse> findById(@PathVariable Long id) {
+        UserResponse user = service.findById(id);
+        return ResponseEntity.ok(user);
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Atualiza um usuário", description = "Atualiza os dados de um usuário existente.")
+    @PreAuthorize("hasAuthority('GERENCIAR_USUARIO')")
+    public ResponseEntity<UserResponse> update(@PathVariable Long id, @RequestBody @Valid UserRequestDTO dto) {
+        UserResponse updatedUser = service.update(id, dto);
+        return ResponseEntity.ok(updatedUser);
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Exclui um usuário", description = "Remove permanentemente um usuário do sistema.")
+    @PreAuthorize("hasAuthority('GERENCIAR_USUARIO')")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        service.delete(id);
+        return ResponseEntity.noContent().build();
+    }
 }
+
 

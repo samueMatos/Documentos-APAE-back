@@ -15,6 +15,8 @@ import br.apae.ged.domain.repositories.UserGroupRepository;
 import br.apae.ged.application.strategy.NewUserValidationStrategy;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -113,7 +115,6 @@ public class UserService {
 
     @Transactional //ALTERADO ERICK
     public void changeUserPassword(ChangePasswordDTO dto) {
-        // 1. Obter o usuário autenticado
         User authenticatedUser = AuthenticationUtil.retriveAuthenticatedUser();
         if (authenticatedUser == null || authenticatedUser.getEmail() == null) {
             throw new RuntimeException("Usuário não autenticado.");
@@ -135,4 +136,55 @@ public class UserService {
 
 
     }
+
+    public Page<UserResponse> listAll(Pageable pageable, String nome) {
+        Page<User> userPage;
+        if (nome != null && !nome.isBlank()) {
+            userPage = userRepository.findByNomeContainingIgnoreCaseWithGroups(nome, pageable);
+        } else {
+            userPage = userRepository.findAllWithGroups(pageable);
+        }
+        return userPage.map(UserResponse::fromEntity);
+    }
+
+
+    public UserResponse findById(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Usuário com ID " + id + " não encontrado."));
+        return UserResponse.fromEntity(user);
+    }
+
+    @Transactional
+    public UserResponse update(Long id, UserRequestDTO dto) {
+        User userToUpdate = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Usuário com ID " + id + " não encontrado para atualização."));
+
+
+        userToUpdate.setNome(dto.nome());
+        userToUpdate.setEmail(dto.email());
+
+
+        if (dto.groupId() != null) {
+            UserGroup group = userGroupRepository.findById(dto.groupId())
+                    .orElseThrow(() -> new NotFoundException("Grupo com ID " + dto.groupId() + " não encontrado."));
+            userToUpdate.setUserGroup(group);
+        }
+
+
+        if (dto.password() != null && !dto.password().isBlank()) {
+            userToUpdate.setPassword(passwordEncoder.encode(dto.password()));
+        }
+
+        User updatedUser = userRepository.save(userToUpdate);
+        return UserResponse.fromEntity(updatedUser);
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new NotFoundException("Usuário com ID " + id + " não encontrado para exclusão.");
+        }
+        userRepository.deleteById(id);
+    }
 }
+
