@@ -12,29 +12,33 @@ public record DocumentResponseDTO(
         Long id,
         String nome,
         TipoDocumento tipoDocumento,
-        TipoArquivo tipoArquivo,
-        String path,
+        byte[] documento,
+        String tipoConteudo,
         LocalDateTime dataUpload,
-        LocalDateTime dataDownload,
-        UserResponse downloadedBy,
-        UserResponse uploadedBy,
-        AlunoResponseDTO aluno,
-        Boolean isLast
+        LocalDateTime dataDownload
 ) {
 
-    public static DocumentResponseDTO fromEntity(Document document){
+    public static DocumentResponseDTO fromEntity(Document document, byte[] documento){
         return new DocumentResponseDTO(
                 document.getId(),
                 document.getTitulo(),
                 document.getTipoDocumento(),
-                document.getTipoArquivo(),
-                document.getPath(),
+                documento,
+                document.getTipoConteudo(),
                 document.getDataUpload(),
-                document.getDataDownload(),
-                UserResponse.fromEntity(document.getDownloadedBy()),
-                UserResponse.fromEntity(document.getUploadedBy()),
-                AlunoResponseDTO.fromEntity(document.getAluno()),
-                document.getIsLast()
+                document.getDataDownload()
+        );
+    }
+    public static DocumentResponseDTO fromEntityWithoutContent(Document document) {
+                return new DocumentResponseDTO(
+                document.getId(),
+                document.getTitulo(),
+                document.getTipoDocumento(),
+                null,
+                document.getTipoConteudo(),
+                document.getDataUpload(),
+                document.getDataDownload()
+
         );
     }
 }

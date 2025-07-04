@@ -24,7 +24,9 @@ public class Document {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private String titulo;
-    private String path;
+    @Column(columnDefinition = "TEXT")
+    private String conteudo;
+    private String tipoConteudo;
     private LocalDateTime dataUpload;
     private LocalDateTime dataDownload;
     private LocalDateTime dataUpdate;
@@ -32,9 +34,6 @@ public class Document {
     @ManyToOne
     @JoinColumn(name = "document_type_id")
     private TipoDocumento tipoDocumento;
-
-    @Enumerated(EnumType.STRING)
-    private TipoArquivo tipoArquivo;
 
     @ManyToOne
     @JoinColumn(name = "aluno_id", referencedColumnName = "id")
@@ -47,10 +46,6 @@ public class Document {
     @ManyToOne
     @JoinColumn(name = "uploaded_by", referencedColumnName = "id")
     private User uploadedBy;
-
-    @OneToOne
-    @JoinColumn(name = "previous_version", referencedColumnName = "id")
-    private Document prevVersion;
 
     private Boolean isLast;
 
