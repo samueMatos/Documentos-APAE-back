@@ -37,11 +37,6 @@ public class WebConfigurer {
                         .requestMatchers("/user/login").permitAll()
                         .requestMatchers("/user/register").permitAll()
                         .requestMatchers("/alunos/schedule").permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "/alunos/{id}").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/user/{id}").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/user/removeAdmin/{id}").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/user/setAdmin/{id}").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/user/group").hasRole("ADMIN")
                         .requestMatchers(
                                 "/auth/**",
                               "/swagger-ui/**",
