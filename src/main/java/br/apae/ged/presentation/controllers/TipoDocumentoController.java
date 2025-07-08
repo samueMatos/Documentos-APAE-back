@@ -6,11 +6,12 @@ import br.apae.ged.application.services.TipoDocumentoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/tipo-documento")
@@ -22,34 +23,57 @@ public class TipoDocumentoController {
     private final TipoDocumentoService tipoDocumentoService;
 
     @PostMapping
-    @Operation(summary = "Cria um novo tipo de documento", description = "Registra um novo tipo de documento no sistema.")
-    public ResponseEntity<TipoDocumentoResponse> create(@RequestBody TipoDocumentoRequest request) {
-        return ResponseEntity.status(201).body(tipoDocumentoService.create(request));
+    @Operation(summary = "Cria um novo tipo de documento")
+    public ResponseEntity<?> create(@RequestBody TipoDocumentoRequest request) {
+        try {
+            return ResponseEntity.status(201).body(tipoDocumentoService.create(request));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
-    @GetMapping
-    @Operation(summary = "Lista todos os tipos de documento", description = "Retorna uma lista com todos os tipos de documento cadastrados.")
-    public ResponseEntity<List<TipoDocumentoResponse>> findAll() {
-        return ResponseEntity.ok(tipoDocumentoService.findAll());
+    @GetMapping("/all")
+    @Operation(summary = "Lista os tipos de documento de forma paginada")
+    public ResponseEntity<?> findAll(
+            @RequestParam(required = false) String termoBusca,
+            @PageableDefault(size = 10, sort = "nome") Pageable pageable) {
+        try {
+            var paginaDeTipos = tipoDocumentoService.findAll(termoBusca, pageable);
+            return ResponseEntity.ok(paginaDeTipos);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Busca tipo de documento por ID", description = "Retorna os detalhes de um tipo de documento específico.")
-    public ResponseEntity<TipoDocumentoResponse> findById(@PathVariable Long id) {
-        return ResponseEntity.ok(tipoDocumentoService.findById(id));
+    @Operation(summary = "Busca tipo de documento por ID")
+    public ResponseEntity<?> findById(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(tipoDocumentoService.findById(id));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Atualiza um tipo de documento", description = "Atualiza os dados de um tipo de documento existente.")
-    public ResponseEntity<TipoDocumentoResponse> update(@PathVariable Long id,
-            @RequestBody TipoDocumentoRequest request) {
-        return ResponseEntity.ok(tipoDocumentoService.update(id, request));
+    @Operation(summary = "Atualiza um tipo de documento")
+    public ResponseEntity<?> update(@PathVariable Long id,
+                                    @RequestBody TipoDocumentoRequest request) {
+        try {
+            return ResponseEntity.ok(tipoDocumentoService.update(id, request));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Exclui um tipo de documento", description = "Remove um tipo de documento do sistema com base no ID.")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        tipoDocumentoService.delete(id);
-        return ResponseEntity.noContent().build();
+    @PatchMapping("/{id}/status")
+    @Operation(summary = "Ativa ou Inativa um tipo de documento")
+    public ResponseEntity<?> changeStatus(@PathVariable Long id) {
+        try {
+            tipoDocumentoService.changeStatus(id);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

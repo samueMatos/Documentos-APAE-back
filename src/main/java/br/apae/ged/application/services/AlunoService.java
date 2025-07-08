@@ -49,7 +49,7 @@ public class AlunoService {
 
             if (alunoExistente.getIsAtivo()) {
 
-                throw new BusinessException("Já existe um aluno ATIVO cadastrado com este CPF.");
+                throw new BusinessException("Já existe um aluno ativo cadastrado com este CPF.");
             } else {
 
                 var cidade = cidadeRepository.findByIbge(request.ibge())

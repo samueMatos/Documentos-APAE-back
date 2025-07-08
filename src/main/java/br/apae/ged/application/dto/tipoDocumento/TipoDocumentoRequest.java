@@ -2,5 +2,6 @@ package br.apae.ged.application.dto.tipoDocumento;
 
 public record TipoDocumentoRequest (
         String nome,
-        Integer validade
+        Integer validade,
+        Boolean isAtivo
 ){}

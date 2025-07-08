@@ -11,7 +11,8 @@ public record TipoDocumentoResponse(
         String usuarioAlteracao,
         LocalDateTime dataAlteracao,
         LocalDateTime dataRegistro,
-        Integer validade) {
+        Integer validade,
+        Boolean isAtivo) {
 
     public TipoDocumentoResponse(TipoDocumento tipoDocumento) {
         this(
@@ -21,6 +22,7 @@ public record TipoDocumentoResponse(
                 tipoDocumento.getUsuarioAlteracao() != null ? tipoDocumento.getUsuarioAlteracao().getNome() : null,
                 tipoDocumento.getDataAlteracao(),
                 tipoDocumento.getDataRegistro(),
-                tipoDocumento.getValidade());
+                tipoDocumento.getValidade(),
+                tipoDocumento.getIsAtivo());
     }
 }
