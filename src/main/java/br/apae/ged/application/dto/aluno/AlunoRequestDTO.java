@@ -7,6 +7,7 @@ public record AlunoRequestDTO(
         LocalDate dataNascimento,
         String sexo,
         String cpf,
+        String matricula,
         String telefone,
         LocalDate dataEntrada,
         Boolean isAtivo,

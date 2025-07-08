@@ -36,7 +36,8 @@ public class AlunoController {
         }
     }
 
-    @PostMapping("/importar")
+
+    @PostMapping(value = "/importar", consumes = "multipart/form-data")
     @Operation(summary = "Importa alunos de um arquivo", description = "Importa uma lista de alunos a partir de um arquivo Excel.")
     public ResponseEntity<?> importarAlunos(@RequestParam("file") MultipartFile file) {
         if (file == null || file.isEmpty()) {
@@ -55,12 +56,12 @@ public class AlunoController {
     }
 
     @GetMapping("/all")
-    @Operation(summary = "Lista todos os alunos", description = "Retorna uma lista de todos os alunos cadastrados, com opções de filtragem por nome e CPF, retornando 10 alunos por lista.")
-    public ResponseEntity<?> findAll(@RequestParam(required = false) String nome,
-                                     @RequestParam(required = false) String cpf,
+    @Operation(summary = "Lista todos os alunos", description = "Retorna uma lista de alunos. A busca pode ser feita por nome, CPF ou matrícula usando o parâmetro 'termoBusca'.")
+    public ResponseEntity<?> findAll(@RequestParam(required = false) String termoBusca,
                                      @PageableDefault(size = 10, sort = "nome") Pageable pageable) {
         try {
-            var paginaDeAlunos = alunoService.findAll(nome, pageable);
+
+            var paginaDeAlunos = alunoService.findAll(termoBusca, pageable);
             return ResponseEntity.ok(paginaDeAlunos);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

@@ -20,12 +20,13 @@ public class Endereco extends EntityID{
     private String complemento;
     private String cep;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "aluno_id", referencedColumnName = "id")
     private Alunos aluno;
     @ManyToOne
     @JoinColumn(name = "cidade_id", referencedColumnName = "id")
     private Cidade cidade;
+
 
     public Endereco(Cidade cidade,
                     String bairro,

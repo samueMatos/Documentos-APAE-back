@@ -27,10 +27,15 @@ public class Alunos extends EntityID {
     private String sexo;
     @Embedded
     private CPF cpf;
+    private String matricula;
     private String telefone;
     private LocalDate dataEntrada;
     private Boolean isAtivo;
     private String observacoes;
+
+
+    @OneToOne(mappedBy = "aluno", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Endereco endereco;
 
     @ManyToOne
     @JoinColumn(name = "registered_by", referencedColumnName = "id")
@@ -50,12 +55,13 @@ public class Alunos extends EntityID {
 
 
     public Alunos(String nome, LocalDate dataNascimento,
-                  String sexo, CPF cpf, String telefone,
+                  String sexo, CPF cpf, String matricula, String telefone,
                   LocalDate dataEntrada, String observacoes) {
         this.nome = nome;
         this.dataNascimento = dataNascimento;
         this.sexo = sexo;
         this.cpf = cpf;
+        this.matricula = matricula;
         this.telefone = telefone;
         this.dataEntrada = dataEntrada;
         this.createdAt = LocalDateTime.now();
@@ -68,6 +74,7 @@ public class Alunos extends EntityID {
                 request.dataNascimento(),
                 request.sexo(),
                 new CPF(request.cpf()),
+                request.matricula(),
                 request.telefone(),
                 request.dataEntrada(),
                 request.observacoes()
@@ -79,6 +86,7 @@ public class Alunos extends EntityID {
         this.setDataNascimento(atualizacao.dataNascimento());
         this.setSexo(atualizacao.sexo());
         this.setCpf(new CPF(atualizacao.cpf()));
+        this.matricula = atualizacao.matricula();
         this.setTelefone(atualizacao.telefone());
         this.setObservacoes(atualizacao.observacoes());
         this.setUpdatedBy(usuarioAutenticado);
