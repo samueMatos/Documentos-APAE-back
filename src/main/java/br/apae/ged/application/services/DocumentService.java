@@ -40,6 +40,10 @@ public class DocumentService {
         if (arquivo == null || arquivo.isEmpty()) {
             throw new ValidationException("O arquivo está vazio");
         }
+        if (dto.dataDocumento() == null) {
+            throw new ValidationException("A data do documento é obrigatória.");
+        }
+
         Alunos aluno = alunoRepository.findById(alunoID)
                 .orElseThrow(() -> new NotFoundException("Aluno não encontrado."));
 
@@ -47,24 +51,35 @@ public class DocumentService {
         TipoDocumento tipoDoc = tipoDocumentoRepository.findByNome(dto.tipoDocumento())
                 .orElseThrow(() -> new NotFoundException("Tipo de Documento com o nome '" + dto.tipoDocumento() + "' não encontrado."));
 
-        String dataFormatada = LocalDate.now().format(
+        LocalDate dataDoDocumento = dto.dataDocumento();
+
+
+        String dataFormatada = dataDoDocumento.format(
                 java.time.format.DateTimeFormatter.ofPattern("dd-MM-yyyy")
         );
-        String conteudoEmBase64 = Base64.getEncoder().encodeToString(arquivo.getBytes());
-        String tipoDoConteudo = arquivo.getContentType();
-        String tituloPadronizado = String.format("%s - %s",
+
+
+        String novoTitulo = String.format("%s - %s - %s",
                 aluno.getNome(),
+                tipoDoc.getNome(),
                 dataFormatada
         );
+
+
+        String conteudoEmBase64 = Base64.getEncoder().encodeToString(arquivo.getBytes());
+        String tipoDoConteudo = arquivo.getContentType();
+
         Document novoDocumento = Document.builder()
-                .titulo(tituloPadronizado)
+                .titulo(novoTitulo)
                 .tipoDocumento(tipoDoc)
                 .aluno(aluno)
                 .uploadedBy(user)
                 .dataUpload(LocalDateTime.now())
                 .conteudo(conteudoEmBase64)
                 .tipoConteudo(tipoDoConteudo)
+                .isAtivo(true)
                 .isLast(true)
+                .dataDocumento(dto.dataDocumento())
                 .build();
 
         var documentoSalvo = documentRepository.save(novoDocumento);
@@ -74,11 +89,23 @@ public class DocumentService {
         );
     }
 
-    public Page<DocumentResponseDTO> visualizarTodos(String nome, Pageable pageable) {
-        Specification<Document> spec = Specification.where(DocumentSpecification.isLast());
-        if (nome != null && !nome.isBlank()) {
-            spec = spec.and(DocumentSpecification.byAlunoNome(nome));
+    public Page<DocumentResponseDTO> visualizarTodos(String termoBusca, Pageable pageable) {
+
+        Specification<Document> specFinal = Specification.where(DocumentSpecification.isLast()).and(DocumentSpecification.isAtivo());
+
+        if (termoBusca != null && !termoBusca.isBlank()) {
+
+            Specification<Document> specBuscaAluno = Specification.anyOf(
+                    DocumentSpecification.byAlunoNome(termoBusca),
+                    DocumentSpecification.byAlunoMatricula(termoBusca),
+                    DocumentSpecification.byAlunoCpf(termoBusca)
+            );
+
+
+            specFinal = specFinal.and(specBuscaAluno);
         }
+
+
         Pageable pageableComOrdenacao = pageable;
         if (pageable.getSort().isUnsorted()) {
             pageableComOrdenacao = PageRequest.of(
@@ -87,7 +114,7 @@ public class DocumentService {
                     Sort.by("dataUpload").descending()
             );
         }
-        Page<Document> documentPage = documentRepository.findAll(spec, pageableComOrdenacao);
+        Page<Document> documentPage = documentRepository.findAll(specFinal, pageableComOrdenacao);
 
         return documentPage.map(DocumentResponseDTO::fromEntityWithoutContent);
     }
@@ -116,13 +143,22 @@ public class DocumentService {
             documentoParaAtualizar.setTipoConteudo(arquivo.getContentType());
         }
 
+        if (dto.dataDocumento() != null) {
+            documentoParaAtualizar.setDataDocumento(dto.dataDocumento());
+        }
+
         Document documentoAtualizado = documentRepository.save(documentoParaAtualizar);
         return DocumentResponseDTO.fromEntityWithoutContent(documentoAtualizado);
     }
 
-    public void delete(Long id) {
+    public void changeStatus(Long id) {
         Document documento = documentRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Documento com ID " + id + " não encontrado para exclusão."));
-        documentRepository.delete(documento);
+                .orElseThrow(() -> new NotFoundException("Documento com ID " + id + " não encontrado."));
+
+        documento.setAtivo(!documento.isAtivo());
+        documento.setUpdatedBy(AuthenticationUtil.retriveAuthenticatedUser());
+        documento.setDataUpdate(LocalDateTime.now());
+
+        documentRepository.save(documento);
     }
 }

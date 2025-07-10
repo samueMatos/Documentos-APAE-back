@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -30,6 +31,9 @@ public class Document {
     private LocalDateTime dataUpload;
     private LocalDateTime dataDownload;
     private LocalDateTime dataUpdate;
+    private LocalDate dataDocumento;
+    @Column(name = "is_ativo", nullable = false)
+    private boolean isAtivo = true;
 
     @ManyToOne
     @JoinColumn(name = "document_type_id")
@@ -46,6 +50,11 @@ public class Document {
     @ManyToOne
     @JoinColumn(name = "uploaded_by", referencedColumnName = "id")
     private User uploadedBy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "updated_by", referencedColumnName = "id")
+    private User updatedBy;
+
 
     private Boolean isLast;
 

@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/tipo-documento")
 @RequiredArgsConstructor
@@ -76,4 +78,16 @@ public class TipoDocumentoController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+
+        @GetMapping("/ativos")
+        @Operation(summary = "Lista todos os tipos de documento ativos (não paginado)")
+        public ResponseEntity<List<TipoDocumentoResponse>> findAllAtivos() {
+            try {
+                List<TipoDocumentoResponse> listaDeTipos = tipoDocumentoService.findAllAtivos();
+                return ResponseEntity.ok(listaDeTipos);
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().build();
+            }
+        }
 }

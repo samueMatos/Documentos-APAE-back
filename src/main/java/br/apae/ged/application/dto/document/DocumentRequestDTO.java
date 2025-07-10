@@ -6,8 +6,11 @@ import br.apae.ged.domain.models.enums.TipoArquivo;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
+
 public record DocumentRequestDTO(
         String tipoDocumento,
-        MultipartFile file
+        MultipartFile file,
+        LocalDate dataDocumento
 ) {
 }

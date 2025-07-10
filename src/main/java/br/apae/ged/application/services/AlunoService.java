@@ -206,17 +206,18 @@ public class AlunoService {
 
 
     public Page<AlunoResponseDTO> findAll(String termoBusca, Pageable pageable) {
+
         Specification<Alunos> spec = Specification.where(AlunoSpecification.isAtivo());
+
 
         if (termoBusca != null && !termoBusca.isBlank()) {
 
 
-
-
-            Specification<Alunos> buscaCombinada = Specification
-                    .where(AlunoSpecification.byNome(termoBusca))
-                    .or(AlunoSpecification.byCpf(termoBusca))
-                    .or(AlunoSpecification.byMatricula(termoBusca));
+            Specification<Alunos> buscaCombinada = Specification.anyOf(
+                    AlunoSpecification.byNome(termoBusca),
+                    AlunoSpecification.byCpf(termoBusca),
+                    AlunoSpecification.byMatricula(termoBusca)
+            );
 
             spec = spec.and(buscaCombinada);
         }

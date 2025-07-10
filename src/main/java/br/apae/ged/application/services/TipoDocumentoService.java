@@ -16,7 +16,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -101,5 +103,12 @@ public class TipoDocumentoService {
         tipoDocumento.setDataAlteracao(LocalDateTime.now());
 
         tipoDocumentoRepository.save(tipoDocumento);
+    }
+
+    public List<TipoDocumentoResponse> findAllAtivos() {
+        return tipoDocumentoRepository.findAllByIsAtivoTrueOrderByNomeAsc()
+                .stream()
+                .map(TipoDocumentoResponse::new)
+                .collect(Collectors.toList());
     }
 }

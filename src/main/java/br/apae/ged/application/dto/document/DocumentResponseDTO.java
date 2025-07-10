@@ -1,26 +1,22 @@
 package br.apae.ged.application.dto.document;
 
 import br.apae.ged.domain.models.Document;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Base64;
 
-/**
- * DTO para respostas de Documentos.
- */
 public record DocumentResponseDTO(
         Long id,
-        String nome,
+        String titulo,
         String tipoConteudo,
-        String documento, // Representa o conteúdo em Base64 como uma String
+        String documento,
         LocalDateTime dataUpload,
         LocalDateTime dataDownload,
-        AlunoResponseDTO aluno, // 1. Campo do aluno ADICIONADO
-        TipoDocumentoResponseDTO tipoDocumento // 2. Usando um DTO aninhado
+        LocalDate dataDocumento,
+        AlunoResponseDTO aluno,
+        TipoDocumentoResponseDTO tipoDocumento
 ) {
 
-    /**
-     * DTO aninhado para representar o Aluno de forma simples.
-     */
     public record AlunoResponseDTO(
             Long id,
             String nome
@@ -31,9 +27,6 @@ public record DocumentResponseDTO(
         }
     }
 
-    /**
-     * DTO aninhado para representar o TipoDocumento de forma simples.
-     */
     public record TipoDocumentoResponseDTO(
             Long id,
             String nome
@@ -44,14 +37,8 @@ public record DocumentResponseDTO(
         }
     }
 
-    /**
-     * Cria o DTO a partir da Entidade, INCLUINDO o conteúdo do arquivo.
-     * Usado para visualizar um único documento.
-     */
-    public static DocumentResponseDTO fromEntity(Document document, byte[] documento) {
-        // 3. Converte o array de bytes para uma String Base64
-        String base64Content = (documento != null) ? Base64.getEncoder().encodeToString(documento) : null;
-
+    public static DocumentResponseDTO fromEntity(Document document, byte[] documentoBytes) {
+        String base64Content = (documentoBytes != null) ? Base64.getEncoder().encodeToString(documentoBytes) : null;
         return new DocumentResponseDTO(
                 document.getId(),
                 document.getTitulo(),
@@ -59,23 +46,21 @@ public record DocumentResponseDTO(
                 base64Content,
                 document.getDataUpload(),
                 document.getDataDownload(),
+                document.getDataDocumento(),
                 AlunoResponseDTO.fromEntity(document.getAluno()),
                 TipoDocumentoResponseDTO.fromEntity(document.getTipoDocumento())
         );
     }
 
-    /**
-     * Cria o DTO a partir da Entidade, SEM o conteúdo do arquivo.
-     * Usado para listagens, para não transferir dados pesados.
-     */
     public static DocumentResponseDTO fromEntityWithoutContent(Document document) {
         return new DocumentResponseDTO(
                 document.getId(),
                 document.getTitulo(),
                 document.getTipoConteudo(),
-                null, // Conteúdo não é enviado na listagem
+                null,
                 document.getDataUpload(),
                 document.getDataDownload(),
+                document.getDataDocumento(),
                 AlunoResponseDTO.fromEntity(document.getAluno()),
                 TipoDocumentoResponseDTO.fromEntity(document.getTipoDocumento())
         );

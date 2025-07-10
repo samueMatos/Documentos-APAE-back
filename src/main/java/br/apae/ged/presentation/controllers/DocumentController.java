@@ -8,11 +8,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.time.LocalDate;
 
 @RestController
 @RequiredArgsConstructor
@@ -33,9 +35,10 @@ public class DocumentController {
     @GetMapping(value = "/listar")
     @Operation(summary = "Lista documentos paginados", description = "Retorna uma lista paginada com a última versão dos documentos, permitindo filtro por nome do aluno.")
     public ResponseEntity<?> visualizarTodos(
-            @RequestParam(required = false) String nome,
-            Pageable pageable) {
-        var paginaDeDocumentos = service.visualizarTodos(nome, pageable);
+            @RequestParam(required = false) String termoBusca,
+            Pageable pageable
+    ) {
+        var paginaDeDocumentos = service.visualizarTodos(termoBusca, pageable);
         return ResponseEntity.ok(paginaDeDocumentos);
     }
 
@@ -55,10 +58,10 @@ public class DocumentController {
         return ResponseEntity.ok(updatedDocument);
     }
 
-    @DeleteMapping("/delete/{id}")
-    @Operation(summary = "Exclui um documento", description = "Remove um documento permanentemente do sistema com base no seu ID.")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        service.delete(id);
+    @PatchMapping("/{id}/status")
+    @Operation(summary = "Altera o status de um documento", description = "Ativa ou inativa um documento com base no seu ID.")
+    public ResponseEntity<Void> changeStatus(@PathVariable Long id) {
+        service.changeStatus(id);
         return ResponseEntity.noContent().build();
     }
 

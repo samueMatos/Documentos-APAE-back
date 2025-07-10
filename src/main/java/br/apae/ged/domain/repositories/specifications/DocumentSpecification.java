@@ -1,52 +1,57 @@
 package br.apae.ged.domain.repositories.specifications;
 
+import br.apae.ged.domain.models.Alunos;
 import br.apae.ged.domain.models.Document;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 
 public class DocumentSpecification {
 
-    private DocumentSpecification(){
-        throw new IllegalStateException("Utility Class");
-    }
-
-    public static Specification<Document> isLast(){
-        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("isLast"), true);
-    }
-
-    public static Specification<Document> dateDesc(){
-        return (root, query, criteriaBuilder) -> {
-            if (query == null){
-                return criteriaBuilder.conjunction();
-            }
-            query.orderBy(criteriaBuilder.desc(root.get("dataDownload")));
-            return query.getRestriction();
-        };
-    }
-
-    public static Specification<Document> byTitulo(String titulo){
-        return (root, query, criteriaBuilder) -> {
-            if (titulo == null || titulo.isBlank() || titulo.isEmpty()){
-                return criteriaBuilder.conjunction();
-            }
-            return criteriaBuilder.like(criteriaBuilder.lower(root.get("titulo")), "%" + titulo.toLowerCase() + "%");
-        };
-    }
-
-    public static Specification<Document> byAlunoId(Long id) {
-        return (root, query, criteriaBuilder) -> {
-            if (id == null) {
-                return criteriaBuilder.conjunction();
-            }
-            return criteriaBuilder.equal(root.get("aluno").get("id"), id);
-        };
+    public static Specification<Document> isLast() {
+        return (root, query, cb) -> cb.isTrue(root.get("isLast"));
     }
 
     public static Specification<Document> byAlunoNome(String nome) {
-        return (root, query, criteriaBuilder) -> {
-            if (nome == null || nome.isBlank() || nome.isEmpty()) {
-                return criteriaBuilder.conjunction();
-            }
-            return criteriaBuilder.like(criteriaBuilder.lower(root.get("aluno").get("nome")),"%" + nome.toLowerCase() + "%");
+        if (nome == null || nome.isBlank()) return null;
+        return (root, query, cb) -> {
+            Join<Document, Alunos> alunoJoin = root.join("aluno");
+            return cb.like(cb.lower(alunoJoin.get("nome")), "%" + nome.toLowerCase() + "%");
         };
+    }
+
+    public static Specification<Document> byAlunoMatricula(String matricula) {
+
+        if (matricula == null || matricula.isBlank() || !matricula.matches(".*[0-9].*")) {
+            return null;
+        }
+        return (root, query, cb) -> {
+            Join<Document, Alunos> alunoJoin = root.join("aluno");
+            return cb.like(alunoJoin.get("matricula").as(String.class), "%" + matricula + "%");
+        };
+    }
+
+    public static Specification<Document> byAlunoCpf(String cpf) {
+        if (cpf == null || cpf.isBlank()) return null;
+
+        String cpfNumeros = cpf.replaceAll("[^0-9]", "");
+
+        if (cpfNumeros.isEmpty()) {
+            return null;
+        }
+
+        return (root, query, cb) -> {
+            Join<Document, Alunos> alunoJoin = root.join("aluno");
+
+            Expression<String> cpfSemPontuacao = cb.function("REPLACE", String.class,
+                    cb.function("REPLACE", String.class, alunoJoin.get("cpf"), cb.literal("."), cb.literal("")),
+                    cb.literal("-"), cb.literal("")
+            );
+            return cb.like(cpfSemPontuacao, "%" + cpfNumeros + "%");
+        };
+    }
+
+    public static Specification<Document> isAtivo() {
+        return (root, query, cb) -> cb.isTrue(root.get("isAtivo"));
     }
 }
