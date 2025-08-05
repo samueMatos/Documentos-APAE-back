@@ -1,6 +1,8 @@
 package br.apae.ged.application.services;
 
 import br.apae.ged.application.dto.ChangePasswordDTO;
+import br.apae.ged.application.dto.senha.ForgotPasswordDTO;
+import br.apae.ged.application.dto.senha.ResetPasswordDTO;
 import br.apae.ged.domain.utils.AuthenticationUtil;
 import br.apae.ged.presentation.configs.TokenService;
 import br.apae.ged.application.dto.user.UserLoginDTO;
@@ -25,6 +27,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,6 +37,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
     private final TokenService tokenService;
+    private final EmailService emailService;
     private final List<NewUserValidationStrategy> userValidationStrategies;
     private final UserGroupRepository userGroupRepository;
     private final PasswordEncoder passwordEncoder;
@@ -113,30 +117,6 @@ public class UserService {
                 .toList();
     }
 
-    @Transactional //ALTERADO ERICK
-    public void changeUserPassword(ChangePasswordDTO dto) {
-        User authenticatedUser = AuthenticationUtil.retriveAuthenticatedUser();
-        if (authenticatedUser == null || authenticatedUser.getEmail() == null) {
-            throw new RuntimeException("Usuário não autenticado.");
-        }
-
-        User userToUpdate = userRepository.findByEmail(authenticatedUser.getEmail());
-        if (userToUpdate == null) {
-            throw new RuntimeException("Usuário não encontrado no banco de dados: " + authenticatedUser.getEmail());
-        }
-
-        if (!passwordEncoder.matches(dto.getSenhaAtual(), userToUpdate.getPassword())) {
-            throw new RuntimeException("A senha atual está incorreta.");
-        }
-
-        String novaSenhaCodificada = passwordEncoder.encode(dto.getNovaSenha());
-        userToUpdate.setPassword(novaSenhaCodificada);
-
-        userRepository.save(userToUpdate);
-
-
-    }
-
     public Page<UserResponse> listAll(Pageable pageable, String nome) {
         Page<User> userPage;
         if (nome != null && !nome.isBlank()) {
@@ -186,5 +166,85 @@ public class UserService {
         }
         userRepository.deleteById(id);
     }
+
+    // SERVIÇO DE RECUPERAÇÃO DE SENHA
+
+    @Transactional
+    public void changeUserPassword(ChangePasswordDTO dto) {
+        User authenticatedUser = AuthenticationUtil.retriveAuthenticatedUser();
+        if (authenticatedUser == null || authenticatedUser.getEmail() == null) {
+            throw new RuntimeException("Usuário não autenticado.");
+        }
+
+        User userToUpdate = userRepository.findByEmail(authenticatedUser.getEmail());
+        if (userToUpdate == null) {
+            throw new RuntimeException("Usuário não encontrado no banco de dados: " + authenticatedUser.getEmail());
+        }
+
+        if (!passwordEncoder.matches(dto.getSenhaAtual(), userToUpdate.getPassword())) {
+            throw new RuntimeException("A senha atual está incorreta.");
+        }
+
+        String novaSenhaCodificada = passwordEncoder.encode(dto.getNovaSenha());
+        userToUpdate.setPassword(novaSenhaCodificada);
+
+        userRepository.save(userToUpdate);
+    }
+
+    @Transactional
+    public void forgotPassword(ForgotPasswordDTO dto) {
+        User user = userRepository.findByEmail(dto.getEmail());
+        if (user == null) {
+
+            return;
+        }
+
+        String recoveryCode = generateRandomCode(6);
+        user.setRecoveryCode(recoveryCode);
+        user.setRecoveryCodeExpiration(LocalDateTime.now().plusMinutes(10));
+        userRepository.save(user);
+
+        String subject = "Código de Recuperação de Senha";
+        String message = "Seu código de recuperação de senha é: " + recoveryCode +
+                "\nEste código é válido por 10 minutos. Se você não solicitou esta alteração, por favor ignore este email.";
+
+        emailService.sendEmail(user.getEmail(), subject, message);
+    }
+
+    @Transactional
+    public void resetPassword(ResetPasswordDTO dto) {
+        User user = userRepository.findByEmail(dto.getEmail());
+
+        if (user == null) {
+            throw new NotFoundException("Usuário não encontrado.");
+        }
+
+        if (user.getRecoveryCode() == null || !user.getRecoveryCode().equals(dto.getRecoveryCode())) {
+            throw new RuntimeException("Código de recuperação inválido.");
+        }
+
+        if (user.getRecoveryCodeExpiration() == null || user.getRecoveryCodeExpiration().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Código de recuperação expirado.");
+        }
+
+        if (dto.getNewPassword() == null || dto.getNewPassword().length() < 6) {
+            throw new RuntimeException("A nova senha deve ter pelo menos 6 caracteres.");
+        }
+
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+        user.setRecoveryCode(null);
+        user.setRecoveryCodeExpiration(null);
+        userRepository.save(user);
+    }
+
+    private String generateRandomCode(int length) {
+        Random random = new Random();
+        StringBuilder code = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            code.append(random.nextInt(10));
+        }
+        return code.toString();
+    }
+
 }
 

@@ -5,6 +5,7 @@ import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -24,6 +25,8 @@ public class User extends EntityID implements UserDetails{
     private String nome;
     private String password;
     private Boolean isAtivo;
+    private String recoveryCode;
+    private LocalDateTime recoveryCodeExpiration;
 
     @ManyToOne
     @JoinColumn(name = "group_id")

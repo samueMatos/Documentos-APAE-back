@@ -1,6 +1,8 @@
 package br.apae.ged.presentation.controllers;
 
 import br.apae.ged.application.dto.ChangePasswordDTO;
+import br.apae.ged.application.dto.senha.ForgotPasswordDTO;
+import br.apae.ged.application.dto.senha.ResetPasswordDTO;
 import br.apae.ged.application.dto.user.UserLoginDTO;
 import br.apae.ged.application.dto.user.UserLoginResponseDTO;
 import br.apae.ged.application.dto.user.UserRequestDTO;
@@ -40,14 +42,6 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.login(entity));
     }
 
-
-
-    @PutMapping("/change-password") //ALTERADO ERICK
-    public ResponseEntity<Void> changePassword(@RequestBody @Valid ChangePasswordDTO changePasswordDTO) { // Adicionado @Valid (opcional)
-        service.changeUserPassword(changePasswordDTO);
-        return ResponseEntity.ok().build();
-    }
-
     @GetMapping("/list")
     @Operation(summary = "Lista todos os usuários", description = "Retorna uma lista paginada de usuários, com filtro opcional por nome.")
     @PreAuthorize("hasAuthority('GERENCIAR_USUARIO')")
@@ -81,6 +75,25 @@ public class UserController {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<Void> changePassword(@RequestBody @Valid ChangePasswordDTO changePasswordDTO) { // Adicionado @Valid (opcional)
+        service.changeUserPassword(changePasswordDTO);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(@RequestBody @Valid ForgotPasswordDTO forgotPasswordDTO) {
+        service.forgotPassword(forgotPasswordDTO);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@RequestBody @Valid ResetPasswordDTO resetPasswordDTO) {
+        service.resetPassword(resetPasswordDTO);
+        return ResponseEntity.ok().build();
+    }
+
 }
 
 
