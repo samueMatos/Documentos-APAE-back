@@ -117,10 +117,10 @@ public class UserService {
                 .toList();
     }
 
-    public Page<UserResponse> listAll(Pageable pageable, String nome) {
+    public Page<UserResponse> listAll(Pageable pageable, String termoBusca) {
         Page<User> userPage;
-        if (nome != null && !nome.isBlank()) {
-            userPage = userRepository.findByNomeContainingIgnoreCaseWithGroups(nome, pageable);
+        if (termoBusca != null && !termoBusca.isBlank()) {
+            userPage = userRepository.findByTermoBusca(termoBusca, pageable);
         } else {
             userPage = userRepository.findAllWithGroups(pageable);
         }

@@ -43,12 +43,12 @@ public class UserController {
     }
 
     @GetMapping("/list")
-    @Operation(summary = "Lista todos os usuários", description = "Retorna uma lista paginada de usuários, com filtro opcional por nome.")
+    @Operation(summary = "Lista todos os usuários", description = "Retorna uma lista paginada de usuários, com filtro opcional por nome ou email.")
     @PreAuthorize("hasAuthority('GERENCIAR_USUARIO')")
     public ResponseEntity<Page<UserResponse>> listAll(
             Pageable pageable,
-            @RequestParam(required = false) String nome) {
-        Page<UserResponse> users = service.listAll(pageable, nome);
+            @RequestParam(required = false) String termoBusca) {
+        Page<UserResponse> users = service.listAll(pageable, termoBusca);
         return ResponseEntity.ok(users);
     }
 
