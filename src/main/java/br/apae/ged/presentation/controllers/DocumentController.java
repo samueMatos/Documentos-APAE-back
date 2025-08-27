@@ -3,18 +3,18 @@ package br.apae.ged.presentation.controllers;
 import br.apae.ged.application.dto.document.DocumentRequestDTO;
 import br.apae.ged.application.dto.document.DocumentResponseDTO;
 import br.apae.ged.application.dto.document.DocumentUploadResponseDTO;
+import br.apae.ged.application.dto.document.GerarDocumentoDTO;
 import br.apae.ged.application.services.DocumentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
-import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.time.LocalDate;
 
 @RestController
 @RequiredArgsConstructor
@@ -65,4 +65,16 @@ public class DocumentController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/gerar-pdf")
+    public ResponseEntity<byte[]> gerarPdf(@RequestBody GerarDocumentoDTO dto) {
+        try {
+            byte[] pdfBytes = service.gerarPdf(dto);
+            return ResponseEntity.ok()
+                    .header("Content-Type", "application/pdf")
+                    .header("Content-Disposition", "attachment; filename=documento.pdf")
+                    .body(pdfBytes);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }

@@ -1,5 +1,6 @@
 package br.apae.ged.application.services;
 
+import br.apae.ged.application.dto.document.GerarDocumentoDTO;
 import br.apae.ged.application.dto.document.DocumentRequestDTO;
 import br.apae.ged.application.dto.document.DocumentResponseDTO;
 import br.apae.ged.application.dto.document.DocumentUploadResponseDTO;
@@ -14,6 +15,11 @@ import br.apae.ged.domain.repositories.TipoDocumentoRepository;
 import br.apae.ged.domain.repositories.specifications.DocumentSpecification;
 import br.apae.ged.domain.utils.AuthenticationUtil;
 import lombok.RequiredArgsConstructor;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,9 +28,12 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -34,6 +43,60 @@ public class DocumentService {
     private final DocumentRepository documentRepository;
     private final AlunoRepository alunoRepository;
     private final TipoDocumentoRepository tipoDocumentoRepository;
+
+    public byte[] gerarPdf(GerarDocumentoDTO dto) throws IOException {
+
+        try (PDDocument document = new PDDocument(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            PDPage page = new PDPage();
+            document.addPage(page);
+
+            PDType0Font fontBold = loadFont(document, "/fonts/Roboto-Bold.ttf");
+            PDType0Font fontRegular = loadFont(document, "/fonts/Roboto-Regular.ttf");
+
+            float margin = 50;
+            float yPosition = page.getMediaBox().getHeight() - margin;
+
+            try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
+                contentStream.beginText();
+                contentStream.setFont(fontBold, 16);
+                contentStream.newLineAtOffset(margin, yPosition);
+                contentStream.showText(dto.textoCabecalho() != null ? dto.textoCabecalho() : "Título Padrão");
+                contentStream.endText();
+                yPosition -= 40;
+
+                contentStream.beginText();
+                contentStream.setFont(fontRegular, 12);
+                contentStream.setLeading(14.5f);
+                contentStream.newLineAtOffset(margin, yPosition);
+
+                String corpoDoTexto = dto.texto();
+                if (corpoDoTexto != null && !corpoDoTexto.isEmpty()) {
+                    for (String line : corpoDoTexto.split("\n")) {
+                        contentStream.showText(line);
+                        contentStream.newLine();
+                    }
+                }
+                contentStream.endText();
+
+                contentStream.beginText();
+                contentStream.setFont(fontRegular, 10);
+                contentStream.newLineAtOffset(margin, margin);
+                contentStream.showText(dto.textoRodape() != null ? dto.textoRodape() : "");
+                contentStream.endText();
+            }
+            document.save(out);
+            return out.toByteArray();
+        }
+    }
+
+    private PDType0Font loadFont(PDDocument document, String path) throws IOException {
+        try (InputStream fontStream = DocumentService.class.getResourceAsStream(path)) {
+            if (fontStream == null) {
+                throw new IOException("Arquivo de fonte não encontrado no classpath: " + path);
+            }
+            return PDType0Font.load(document, fontStream);
+        }
+    }
 
     public DocumentUploadResponseDTO save(DocumentRequestDTO dto, Long alunoID) throws IOException {
         MultipartFile arquivo = dto.file();
@@ -53,19 +116,13 @@ public class DocumentService {
 
         LocalDate dataDoDocumento = dto.dataDocumento();
 
-
         String dataFormatada = dataDoDocumento.format(
                 java.time.format.DateTimeFormatter.ofPattern("dd-MM-yyyy")
         );
-
-
-        String novoTitulo = String.format("%s - %s - %s",
+        String novoTitulo = String.format("%s  - %s",
                 aluno.getNome(),
-                tipoDoc.getNome(),
                 dataFormatada
         );
-
-
         String conteudoEmBase64 = Base64.getEncoder().encodeToString(arquivo.getBytes());
         String tipoDoConteudo = arquivo.getContentType();
 

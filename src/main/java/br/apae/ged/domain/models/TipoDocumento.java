@@ -38,7 +38,16 @@ public class TipoDocumento extends EntityID {
 
         @Column(name = "data_registro")
         private LocalDateTime dataRegistro;
+        @Column
+        private boolean guardaPermanente;
 
+        @Column
+        private boolean institucional;
+
+        @Column
+        private boolean documentoAssinavel;
+
+        @Column boolean podeGerarDocumento;
 
         public TipoDocumento(String nome, Integer validade, User usuario) {
                 this.nome = nome;
