@@ -34,6 +34,7 @@ public class Document {
     private LocalDate dataDocumento;
     @Column(name = "is_ativo", nullable = false)
     private boolean isAtivo = true;
+    private boolean isLast = true;
 
     @ManyToOne
     @JoinColumn(name = "document_type_id")
@@ -54,9 +55,6 @@ public class Document {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "updated_by", referencedColumnName = "id")
     private User updatedBy;
-
-
-    private Boolean isLast;
 
     public Document(){
         this.dataUpload = LocalDateTime.now();

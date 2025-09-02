@@ -2,8 +2,8 @@ package br.apae.ged.presentation.controllers;
 
 import br.apae.ged.application.dto.document.DocumentRequestDTO;
 import br.apae.ged.application.dto.document.DocumentResponseDTO;
+import br.apae.ged.application.dto.document.GerarDocumentoAlunoDTO;
 import br.apae.ged.application.dto.document.DocumentUploadResponseDTO;
-import br.apae.ged.application.dto.document.GerarDocumentoDTO;
 import br.apae.ged.application.services.DocumentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,13 +32,14 @@ public class DocumentController {
         return ResponseEntity.status(201).body(service.save(document, id));
     }
 
-    @GetMapping(value = "/listar")
-    @Operation(summary = "Lista documentos paginados", description = "Retorna uma lista paginada com a última versão dos documentos, permitindo filtro por nome do aluno.")
+    @GetMapping("/listar/aluno/{alunoId}")
+    @Operation(summary = "Lista documentos paginados por aluno", description = "Retorna uma lista paginada com a última versão dos documentos para um aluno específico, permitindo filtro por título do documento.")
     public ResponseEntity<?> visualizarTodos(
+            @PathVariable Long alunoId,
             @RequestParam(required = false) String termoBusca,
             Pageable pageable
     ) {
-        var paginaDeDocumentos = service.visualizarTodos(termoBusca, pageable);
+        var paginaDeDocumentos = service.listarPorAluno(alunoId, termoBusca, pageable);
         return ResponseEntity.ok(paginaDeDocumentos);
     }
 
@@ -65,8 +66,9 @@ public class DocumentController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/gerar-pdf")
-    public ResponseEntity<byte[]> gerarPdf(@RequestBody GerarDocumentoDTO dto) {
+    @PostMapping("/aluno/gerar-pdf")
+    @Operation(summary = "Gera, salva e retorna um documento PDF", description = "Cria um documento PDF, salva no banco de dados associado a um aluno e retorna o arquivo para download.")
+    public ResponseEntity<byte[]> gerarPdf(@RequestBody GerarDocumentoAlunoDTO dto) {
         try {
             byte[] pdfBytes = service.gerarPdf(dto);
             return ResponseEntity.ok()
@@ -76,5 +78,12 @@ public class DocumentController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    @PostMapping("/gerar-e-salvar")
+    @Operation(summary = "Gera e salva um novo documento PDF", description = "Cria um documento PDF a partir de textos e o salva, associando-o a um aluno.")
+    public ResponseEntity<DocumentUploadResponseDTO> gerarESalvarPdf(@RequestBody GerarDocumentoAlunoDTO dto) throws IOException {
+        DocumentUploadResponseDTO response = service.gerarESalvarPdf(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

@@ -37,13 +37,12 @@ public record DocumentResponseDTO(
         }
     }
 
-    public static DocumentResponseDTO fromEntity(Document document, byte[] documentoBytes) {
-        String base64Content = (documentoBytes != null) ? Base64.getEncoder().encodeToString(documentoBytes) : null;
+    public static DocumentResponseDTO fromEntity(Document document) {
         return new DocumentResponseDTO(
                 document.getId(),
                 document.getTitulo(),
                 document.getTipoConteudo(),
-                base64Content,
+                document.getConteudo(),
                 document.getDataUpload(),
                 document.getDataDownload(),
                 document.getDataDocumento(),

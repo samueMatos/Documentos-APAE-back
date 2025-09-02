@@ -1,6 +1,6 @@
 package br.apae.ged.application.services;
 
-import br.apae.ged.application.dto.document.GerarDocumentoDTO;
+import br.apae.ged.application.dto.document.GerarDocumentoAlunoDTO;
 import br.apae.ged.application.dto.document.DocumentRequestDTO;
 import br.apae.ged.application.dto.document.DocumentResponseDTO;
 import br.apae.ged.application.dto.document.DocumentUploadResponseDTO;
@@ -19,7 +19,6 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -33,7 +32,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -44,8 +42,7 @@ public class DocumentService {
     private final AlunoRepository alunoRepository;
     private final TipoDocumentoRepository tipoDocumentoRepository;
 
-    public byte[] gerarPdf(GerarDocumentoDTO dto) throws IOException {
-
+    public byte[] gerarPdf(GerarDocumentoAlunoDTO dto) throws IOException {
         try (PDDocument document = new PDDocument(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             PDPage page = new PDPage();
             document.addPage(page);
@@ -116,11 +113,12 @@ public class DocumentService {
 
         LocalDate dataDoDocumento = dto.dataDocumento();
 
-        String dataFormatada = dataDoDocumento.format(
+        String dataFormatada = dto.dataDocumento().format(
                 java.time.format.DateTimeFormatter.ofPattern("dd-MM-yyyy")
         );
-        String novoTitulo = String.format("%s  - %s",
+        String novoTitulo = String.format("%s - %s - %s",
                 aluno.getNome(),
+                tipoDoc.getNome(),
                 dataFormatada
         );
         String conteudoEmBase64 = Base64.getEncoder().encodeToString(arquivo.getBytes());
@@ -146,23 +144,68 @@ public class DocumentService {
         );
     }
 
-    public Page<DocumentResponseDTO> visualizarTodos(String termoBusca, Pageable pageable) {
+    public DocumentUploadResponseDTO gerarESalvarPdf(GerarDocumentoAlunoDTO dto) throws IOException {
+        byte[] pdfBytes = gerarPdf(dto);
+        Document documentoSalvo = salvarDocumentoGerado(dto, pdfBytes);
+        return new DocumentUploadResponseDTO(documentoSalvo.getId(), "Documento gerado e salvo com sucesso!");
+    }
+    
+    public byte[] gerarSalvarERetornarPdfBytes(GerarDocumentoAlunoDTO dto) throws IOException {
+        byte[] pdfBytes = gerarPdf(dto);
+        salvarDocumentoGerado(dto, pdfBytes);
+        return pdfBytes;
+    }
 
-        Specification<Document> specFinal = Specification.where(DocumentSpecification.isLast()).and(DocumentSpecification.isAtivo());
-
-        if (termoBusca != null && !termoBusca.isBlank()) {
-
-            Specification<Document> specBuscaAluno = Specification.anyOf(
-                    DocumentSpecification.byAlunoNome(termoBusca),
-                    DocumentSpecification.byAlunoMatricula(termoBusca),
-                    DocumentSpecification.byAlunoCpf(termoBusca)
-            );
-
-
-            specFinal = specFinal.and(specBuscaAluno);
+    private Document salvarDocumentoGerado(GerarDocumentoAlunoDTO dto, byte[] pdfBytes) {
+        if (dto.alunoId() == null) {
+            throw new ValidationException("O ID do aluno é obrigatório.");
         }
 
+        Alunos aluno = alunoRepository.findById(dto.alunoId())
+                .orElseThrow(() -> new NotFoundException("Aluno com ID " + dto.alunoId() + " não encontrado."));
 
+        TipoDocumento tipoDoc = tipoDocumentoRepository.findByNome(dto.tipoDocumento())
+                .orElseThrow(() -> new NotFoundException("Tipo de Documento com o nome '" + dto.tipoDocumento() + "' não encontrado."));
+
+        var user = AuthenticationUtil.retriveAuthenticatedUser();
+
+        String conteudoEmBase64 = Base64.getEncoder().encodeToString(pdfBytes);
+        String tipoDoConteudo = "application/pdf";
+
+        LocalDate dataDoDocumento = LocalDate.now();
+        String dataFormatada = dataDoDocumento.format(
+                java.time.format.DateTimeFormatter.ofPattern("dd-MM-yyyy")
+        );
+
+        String novoTitulo = String.format("%s - %s - %s",
+                aluno.getNome(),
+                tipoDoc.getNome(),
+                dataFormatada
+        );
+        Document novoDocumento = Document.builder()
+                .titulo(novoTitulo)
+                .tipoDocumento(tipoDoc)
+                .aluno(aluno)
+                .uploadedBy(user)
+                .conteudo(conteudoEmBase64)
+                .tipoConteudo(tipoDoConteudo)
+                .dataDocumento(dataDoDocumento)
+                .isLast(true)
+                .isAtivo(true)
+                .build();
+
+        return documentRepository.save(novoDocumento);
+    }
+
+    public Page<DocumentResponseDTO> listarPorAluno(Long alunoId, String termoBusca, Pageable pageable) {
+        Specification<Document> specFinal = Specification.where(DocumentSpecification.isLast())
+                .and(DocumentSpecification.isAtivo())
+                .and((root, query, cb) -> cb.equal(root.get("aluno").get("id"), alunoId));
+        if (termoBusca != null && !termoBusca.isBlank()) {
+            Specification<Document> specBuscaTitulo = (root, query, criteriaBuilder) ->
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("titulo")), "%" + termoBusca.toLowerCase() + "%");
+            specFinal = specFinal.and(specBuscaTitulo);
+        }
         Pageable pageableComOrdenacao = pageable;
         if (pageable.getSort().isUnsorted()) {
             pageableComOrdenacao = PageRequest.of(
@@ -180,7 +223,7 @@ public class DocumentService {
         var documento = documentRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Não foi possível encontrar o documento"));
         byte[] imagem = Base64.getDecoder().decode(documento.getConteudo());
-        return DocumentResponseDTO.fromEntity(documento,imagem );
+        return DocumentResponseDTO.fromEntity(documento );
     }
 
     public DocumentResponseDTO update(Long id, DocumentRequestDTO dto) throws IOException {
