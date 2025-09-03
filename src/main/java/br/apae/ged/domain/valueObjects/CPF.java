@@ -1,7 +1,5 @@
 package br.apae.ged.domain.valueObjects;
 
-import java.util.regex.Pattern;
-
 public class CPF {
     private final String cpf;
 
@@ -19,8 +17,6 @@ public class CPF {
     public String getCpf() {
         return cpf;
     }
-
-    private static final Pattern CPF_PATTERN = Pattern.compile("^\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}$");
 
     private boolean isValid(String cpf) {
         String cpfNumeros = cpf.replaceAll("[^0-9]", "");

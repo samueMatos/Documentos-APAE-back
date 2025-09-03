@@ -80,7 +80,7 @@ public class AlunoService {
             var cidade = cidadeRepository.findByIbge(request.ibge())
                     .orElseThrow(() -> new NotFoundException("Cidade não encontrada para novo aluno."));
 
-            Alunos alunoNovo = Alunos.paraEntidade(request);
+            Alunos alunoNovo = Alunos.paraEntidade(request, AuthenticationUtil.retriveAuthenticatedUser());
             Endereco enderecoNovo = Endereco.paraEntidade(request, cidade);
 
             alunoNovo.setEndereco(enderecoNovo);

@@ -8,13 +8,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.time.LocalDate;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,19 +23,18 @@ public class DocumentController {
 
     private final DocumentService service;
 
-    @PostMapping(value = "/create/{alunoID}", consumes = "multipart/form-data")
-    @Operation(summary = "Upload de um novo documento", description = "Realiza o upload de um arquivo e o associa a um aluno específico.")
+    @PostMapping(value = "/create/{pessoaId}", consumes = "multipart/form-data")
+    @Operation(summary = "Upload de um novo documento para uma Pessoa (Aluno ou Colaborador)", description = "Realiza o upload de um arquivo e o associa a uma pessoa específica pelo ID.")
     public ResponseEntity<DocumentUploadResponseDTO> post(@ModelAttribute DocumentRequestDTO document,
-                                                          @PathVariable("alunoID") Long id) throws IOException {
+            @PathVariable("pessoaId") Long id) throws IOException {
         return ResponseEntity.status(201).body(service.save(document, id));
     }
 
     @GetMapping(value = "/listar")
-    @Operation(summary = "Lista documentos paginados", description = "Retorna uma lista paginada com a última versão dos documentos, permitindo filtro por nome do aluno.")
+    @Operation(summary = "Lista documentos paginados", description = "Retorna uma lista paginada com a última versão dos documentos, permitindo filtro por nome.")
     public ResponseEntity<?> visualizarTodos(
             @RequestParam(required = false) String termoBusca,
-            Pageable pageable
-    ) {
+            Pageable pageable) {
         var paginaDeDocumentos = service.visualizarTodos(termoBusca, pageable);
         return ResponseEntity.ok(paginaDeDocumentos);
     }
@@ -64,5 +61,4 @@ public class DocumentController {
         service.changeStatus(id);
         return ResponseEntity.noContent().build();
     }
-
 }

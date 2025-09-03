@@ -2,7 +2,6 @@ package br.apae.ged.presentation.controllers;
 
 import br.apae.ged.domain.models.Permission;
 import br.apae.ged.application.services.PermissionService;
-import io.swagger.v3.oas.annotations.Hidden;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

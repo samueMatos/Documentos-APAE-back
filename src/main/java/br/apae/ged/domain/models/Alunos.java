@@ -2,10 +2,8 @@ package br.apae.ged.domain.models;
 
 import br.apae.ged.application.dto.aluno.AlunoRequestDTO;
 import br.apae.ged.domain.valueObjects.CPF;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -13,80 +11,56 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
-@Builder
 @Entity(name = "tb_aluno")
-@Table(indexes = {
-        @Index(name = "nome_idx", columnList = "nome"),
-        @Index(name = "cpf_idx", columnList = "cpf")
-})
-public class Alunos extends EntityID {
+@PrimaryKeyJoinColumn(name = "id")
+public class Alunos extends Pessoa {
 
-    private String nome;
     private LocalDate dataNascimento;
     private String sexo;
-    @Embedded
-    private CPF cpf;
     private String matricula;
     private String telefone;
     private LocalDate dataEntrada;
-    private Boolean isAtivo;
     private String observacoes;
-
 
     @OneToOne(mappedBy = "aluno", cascade = CascadeType.ALL, orphanRemoval = true)
     private Endereco endereco;
 
-    @ManyToOne
-    @JoinColumn(name = "registered_by", referencedColumnName = "id")
-    @JsonIgnore
-    private User createdBy;
-
-    @JsonIgnore
-    private LocalDateTime createdAt;
-
-    @ManyToOne
-    @JoinColumn(name = "updated_by", referencedColumnName = "id")
-    @JsonIgnore
-    private User updatedBy;
-
-    @JsonIgnore
-    private LocalDateTime updatedAt;
-
-
-    public Alunos(String nome, LocalDate dataNascimento,
-                  String sexo, CPF cpf, String matricula, String telefone,
-                  LocalDate dataEntrada, String observacoes) {
-        this.nome = nome;
-        this.dataNascimento = dataNascimento;
-        this.sexo = sexo;
-        this.cpf = cpf;
-        this.matricula = matricula;
-        this.telefone = telefone;
-        this.dataEntrada = dataEntrada;
-        this.createdAt = LocalDateTime.now();
-        this.observacoes = observacoes;
+    /**
+     * Método estático para criar uma nova instância de Aluno a partir de um DTO.
+     * Preenche os campos herdados de Pessoa e os campos específicos de Alunos.
+     * 
+     * @param request   DTO com os dados do aluno.
+     * @param createdBy Usuário que está criando o registro.
+     * @return Uma nova instância de Alunos preenchida.
+     */
+    public static Alunos paraEntidade(AlunoRequestDTO request, User createdBy) {
+        Alunos aluno = new Alunos();
+        aluno.setNome(request.nome());
+        aluno.setCpf(new CPF(request.cpf()));
+        aluno.setDataNascimento(request.dataNascimento());
+        aluno.setSexo(request.sexo());
+        aluno.setMatricula(request.matricula());
+        aluno.setTelefone(request.telefone());
+        aluno.setDataEntrada(request.dataEntrada());
+        aluno.setObservacoes(request.observacoes());
+        aluno.setIsAtivo(true);
+        aluno.setCreatedBy(createdBy);
+        aluno.setCreatedAt(LocalDateTime.now());
+        return aluno;
     }
 
-    public static Alunos paraEntidade(AlunoRequestDTO request) {
-        return new Alunos(
-                request.nome(),
-                request.dataNascimento(),
-                request.sexo(),
-                new CPF(request.cpf()),
-                request.matricula(),
-                request.telefone(),
-                request.dataEntrada(),
-                request.observacoes()
-        );
-    }
-
+    /**
+     * Atualiza os dados de um aluno existente a partir de um DTO.
+     * 
+     * @param atualizacao        DTO com os novos dados.
+     * @param usuarioAutenticado Usuário que está realizando a alteração.
+     */
     public void atualizarDados(AlunoRequestDTO atualizacao, User usuarioAutenticado) {
         this.setNome(atualizacao.nome());
         this.setDataNascimento(atualizacao.dataNascimento());
         this.setSexo(atualizacao.sexo());
         this.setCpf(new CPF(atualizacao.cpf()));
-        this.matricula = atualizacao.matricula();
+        this.setMatricula(atualizacao.matricula());
         this.setTelefone(atualizacao.telefone());
         this.setObservacoes(atualizacao.observacoes());
         this.setUpdatedBy(usuarioAutenticado);
