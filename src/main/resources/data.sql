@@ -5074,7 +5074,8 @@ INSERT INTO tb_permissions (id, descricao, nome) VALUES
 (3, 'SUPER_ADMIN', 'SUPER_ADMIN'),
 (4, 'Tela de permissões', 'GRUPOS_PERMISSOES'),
 (5, 'Gerenciar usuário', 'GERENCIAR_USUARIO'),
-(6, 'Tela tipo documento', 'TIPO_DOCUMENTO')
+(6, 'Tela tipo documento', 'TIPO_DOCUMENTO'),
+(7, 'Tela de Colaboradores', 'GERENCIAR_COLABORADORES')
 ON CONFLICT DO NOTHING;
 
 INSERT INTO tb_user_groups (id, nome) VALUES
@@ -5089,7 +5090,8 @@ SELECT * FROM (
         (1, 3),
         (1, 4),
         (1, 5),
-        (1, 6)
+        (1, 6),
+        (1, 7)
 ) AS vals(group_id, permission_id)
 WHERE NOT EXISTS (
     SELECT 1 FROM group_permissions WHERE group_id = 1

@@ -1,13 +1,13 @@
 package br.apae.ged.presentation.controllers;
 
 import br.apae.ged.application.dto.document.DocumentUploadResponseDTO;
-import br.apae.ged.application.dto.documentoIstitucional.AtualizarInstitucionalRequest;
-import br.apae.ged.application.dto.documentoIstitucional.GerarDocInstitucionalRequest;
-import br.apae.ged.application.dto.documentoIstitucional.InstucionalResponse;
-import br.apae.ged.application.dto.documentoIstitucional.InstucionalUploadResponse;
-import br.apae.ged.application.dto.documentoIstitucional.UploadInstitucionalRequest;
+import br.apae.ged.application.dto.documentoIstitucional.*;
 import br.apae.ged.application.services.InstitucionalService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,27 +22,34 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
 
 @RestController
 @RequestMapping("/institucional")
 @RequiredArgsConstructor
 @PreAuthorize("hasAuthority('DOCUMENTOS')")
-@Tag(name = "Institucional", description = "Controla os serviços relacionados a documentos institucionais")
+@Tag(name = "Documentos Institucionais", description = "Controla os serviços relacionados a documentos institucionais.")
 public class InstitucionalController {
 
     private final InstitucionalService service;
 
+    @Operation(summary = "Gera e salva um documento institucional em PDF", description = "Cria um novo documento institucional em formato PDF a partir de dados de texto, salva no sistema e retorna o ID do documento salvo.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Documento gerado e salvo com sucesso."),
+            @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos.", content = @Content)
+    })
     @PostMapping("/gerar-e-salvar")
-    @Operation(summary = "Gera e salva um documento institucional", description = "Gera um documento em PDF a partir de um texto e salva no sistema")
-    public ResponseEntity<DocumentUploadResponseDTO> gerarESalvarPdf(@RequestBody GerarDocInstitucionalRequest entrada) throws Exception {
-       var response = service.gerarESalvarPdf(entrada);
-       return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public ResponseEntity<DocumentUploadResponseDTO> gerarESalvarPdf(@RequestBody GerarDocInstitucionalRequest entrada)
+            throws Exception {
+        var response = service.gerarESalvarPdf(entrada);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @Operation(summary = "Pré-visualiza um documento institucional em PDF", description = "Gera um documento PDF para visualização sem salvá-lo no sistema. Ideal para prever o resultado final do documento.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "PDF gerado com sucesso.", content = @Content(mediaType = "application/pdf")),
+            @ApiResponse(responseCode = "500", description = "Erro interno ao gerar o PDF.", content = @Content)
+    })
     @PostMapping("/pre-visualizar")
-    @Operation(summary = "Gera um PDF institucional para visualização", description = "Cria um documento PDF a partir de um texto para pré-visualização, sem salvar no sistema.")
     public ResponseEntity<byte[]> gerarPdfPreview(@RequestBody GerarDocInstitucionalRequest entrada) {
         try {
             byte[] pdfBytes = service.gerarPdf(entrada);
@@ -55,49 +62,71 @@ public class InstitucionalController {
         }
     }
 
+    @Operation(summary = "Upload de um documento institucional existente", description = "Faz o upload de um arquivo (PDF, DOCX, etc.) e o salva como um documento institucional.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Upload realizado com sucesso."),
+            @ApiResponse(responseCode = "400", description = "Arquivo vazio ou dados inválidos.", content = @Content)
+    })
     @PostMapping(value = "/upload", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-    @Operation(summary = "Realiza um upload de um documento institucional", description = "Faz o upload de um documento já existente no computador do usuário")
     public ResponseEntity<InstucionalUploadResponse> upload(
-            @RequestParam("titulo") String titulo,
-            @RequestParam("tipoDocumento") String tipoDocumento,
-            @RequestParam("dataDocumento") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataCriacao,
-            @RequestPart("file") MultipartFile documento) {
+            @Parameter(description = "Título do documento.") @RequestParam("titulo") String titulo,
+            @Parameter(description = "Tipo do documento (ex: 'Ata de Reunião').") @RequestParam("tipoDocumento") String tipoDocumento,
+            @Parameter(description = "Data de criação do documento (formato: AAAA-MM-DD).") @RequestParam("dataDocumento") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataCriacao,
+            @Parameter(description = "Arquivo a ser enviado.") @RequestPart("file") MultipartFile documento) {
         try {
-            var response = service.uploadDocumento(new UploadInstitucionalRequest(documento, titulo, dataCriacao, tipoDocumento));
+            var response = service
+                    .uploadDocumento(new UploadInstitucionalRequest(documento, titulo, dataCriacao, tipoDocumento));
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
             throw new RuntimeException("Falha no upload do documento institucional.", e);
         }
     }
 
+    @Operation(summary = "Lista documentos institucionais com filtros", description = "Retorna uma lista paginada de documentos institucionais, com filtros opcionais por tipo, título e data de criação.")
+    @ApiResponse(responseCode = "200", description = "Busca realizada com sucesso.")
     @GetMapping("/listar")
     public ResponseEntity<Page<InstucionalResponse>> listarDocumentos(
-            @RequestParam(required = false) String tipoDocumento,
-            @RequestParam(required = false) String titulo,
-            @RequestParam(required = false) LocalDate dataCriacao,
-            Pageable pageable
-    ) {
+            @Parameter(description = "Filtrar por tipo de documento.") @RequestParam(required = false) String tipoDocumento,
+            @Parameter(description = "Filtrar por título do documento.") @RequestParam(required = false) String titulo,
+            @Parameter(description = "Filtrar por data de criação (formato: AAAA-MM-DD).") @RequestParam(required = false) LocalDate dataCriacao,
+            Pageable pageable) {
         Page<InstucionalResponse> documentos = service.listarDocumentos(tipoDocumento, titulo, dataCriacao, pageable);
         return ResponseEntity.ok(documentos);
     }
 
+    @Operation(summary = "Visualiza um documento institucional por ID", description = "Retorna os detalhes e o conteúdo (em base64) de um único documento institucional.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Documento encontrado."),
+            @ApiResponse(responseCode = "404", description = "Documento não encontrado.", content = @Content)
+    })
     @GetMapping("/listarUm/{id}")
-    @Operation(summary = "Listar um documento institucional", description = "Retorna um único documento institucional com seu conteúdo em base64.")
-    public ResponseEntity<?> listarUm(@PathVariable Long id) {
+    public ResponseEntity<?> listarUm(
+            @Parameter(description = "ID do documento a ser visualizado.") @PathVariable Long id) {
         var documento = service.visualizarUm(id);
         return ResponseEntity.ok(documento);
     }
 
-    @PutMapping(value = "/atualizar/{id}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @Operation(summary = "Atualiza um documento institucional", description = "Atualiza os metadados ou o arquivo de um documento institucional existente.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Documento atualizado com sucesso."),
+            @ApiResponse(responseCode = "404", description = "Documento não encontrado.", content = @Content)
+    })
+    @PutMapping(value = "/atualizar/{id}", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<InstucionalResponse> atualizarDocumento(
-            @PathVariable Long id,
+            @Parameter(description = "ID do documento a ser atualizado.") @PathVariable Long id,
             @ModelAttribute AtualizarInstitucionalRequest dto) throws IOException {
         InstucionalResponse response = service.atualizar(id, dto);
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Inativa um documento institucional", description = "Marca um documento como inativo, removendo-o das listagens padrão.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Documento inativado com sucesso."),
+            @ApiResponse(responseCode = "404", description = "Documento não encontrado.", content = @Content)
+    })
     @DeleteMapping("/deletar/{id}")
-    public ResponseEntity<Void> deletarDocumento(@PathVariable Long id) {
+    public ResponseEntity<Void> deletarDocumento(
+            @Parameter(description = "ID do documento a ser inativado.") @PathVariable Long id) {
         service.inativar(id);
         return ResponseEntity.noContent().build();
     }

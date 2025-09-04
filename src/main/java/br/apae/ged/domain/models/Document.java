@@ -1,6 +1,5 @@
 package br.apae.ged.domain.models;
 
-import br.apae.ged.domain.models.enums.TipoArquivo;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,7 +16,7 @@ import java.time.LocalDateTime;
 @Entity(name = "tb_documentos")
 @Table(indexes = {
         @Index(name = "titulo_idx", columnList = "titulo"),
-        @Index(name = "aluno_idx", columnList = "aluno_id")
+        @Index(name = "pessoa_idx", columnList = "pessoa_id")
 })
 public class Document {
 
@@ -41,8 +40,8 @@ public class Document {
     private TipoDocumento tipoDocumento;
 
     @ManyToOne
-    @JoinColumn(name = "aluno_id", referencedColumnName = "id")
-    private Alunos aluno;
+    @JoinColumn(name = "pessoa_id", referencedColumnName = "id")
+    private Pessoa pessoa;
 
     @ManyToOne
     @JoinColumn(name = "downloaded_by", referencedColumnName = "id")
@@ -56,7 +55,7 @@ public class Document {
     @JoinColumn(name = "updated_by", referencedColumnName = "id")
     private User updatedBy;
 
-    public Document(){
+    public Document() {
         this.dataUpload = LocalDateTime.now();
         this.isLast = true;
     }

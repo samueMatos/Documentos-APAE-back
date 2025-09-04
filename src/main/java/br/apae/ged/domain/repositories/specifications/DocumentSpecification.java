@@ -1,7 +1,7 @@
 package br.apae.ged.domain.repositories.specifications;
 
-import br.apae.ged.domain.models.Alunos;
 import br.apae.ged.domain.models.Document;
+import br.apae.ged.domain.models.Pessoa;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
@@ -12,27 +12,18 @@ public class DocumentSpecification {
         return (root, query, cb) -> cb.isTrue(root.get("isLast"));
     }
 
-    public static Specification<Document> byAlunoNome(String nome) {
-        if (nome == null || nome.isBlank()) return null;
-        return (root, query, cb) -> {
-            Join<Document, Alunos> alunoJoin = root.join("aluno");
-            return cb.like(cb.lower(alunoJoin.get("nome")), "%" + nome.toLowerCase() + "%");
-        };
-    }
-
-    public static Specification<Document> byAlunoMatricula(String matricula) {
-
-        if (matricula == null || matricula.isBlank() || !matricula.matches(".*[0-9].*")) {
+    public static Specification<Document> byPessoaNome(String nome) {
+        if (nome == null || nome.isBlank())
             return null;
-        }
         return (root, query, cb) -> {
-            Join<Document, Alunos> alunoJoin = root.join("aluno");
-            return cb.like(alunoJoin.get("matricula").as(String.class), "%" + matricula + "%");
+            Join<Document, Pessoa> pessoaJoin = root.join("pessoa");
+            return cb.like(cb.lower(pessoaJoin.get("nome")), "%" + nome.toLowerCase() + "%");
         };
     }
 
-    public static Specification<Document> byAlunoCpf(String cpf) {
-        if (cpf == null || cpf.isBlank()) return null;
+    public static Specification<Document> byPessoaCpf(String cpf) {
+        if (cpf == null || cpf.isBlank())
+            return null;
 
         String cpfNumeros = cpf.replaceAll("[^0-9]", "");
 
@@ -41,12 +32,12 @@ public class DocumentSpecification {
         }
 
         return (root, query, cb) -> {
-            Join<Document, Alunos> alunoJoin = root.join("aluno");
+            Join<Document, Pessoa> pessoaJoin = root.join("pessoa");
 
             Expression<String> cpfSemPontuacao = cb.function("REPLACE", String.class,
-                    cb.function("REPLACE", String.class, alunoJoin.get("cpf"), cb.literal("."), cb.literal("")),
-                    cb.literal("-"), cb.literal("")
-            );
+                    cb.function("REPLACE", String.class, pessoaJoin.get("cpf").get("cpf"), cb.literal("."),
+                            cb.literal("")),
+                    cb.literal("-"), cb.literal(""));
             return cb.like(cpfSemPontuacao, "%" + cpfNumeros + "%");
         };
     }

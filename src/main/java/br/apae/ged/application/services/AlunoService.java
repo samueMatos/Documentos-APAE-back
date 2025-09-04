@@ -12,6 +12,7 @@ import br.apae.ged.domain.models.User;
 import br.apae.ged.domain.repositories.AlunoRepository;
 import br.apae.ged.domain.repositories.CidadeRepository;
 import br.apae.ged.domain.repositories.EnderecoRepository;
+import br.apae.ged.domain.repositories.PessoaRepository;
 import br.apae.ged.domain.repositories.specifications.AlunoSpecification;
 import br.apae.ged.domain.utils.AuthenticationUtil;
 import br.apae.ged.domain.valueObjects.CPF;
@@ -34,6 +35,7 @@ import java.util.Optional;
 public class AlunoService {
 
     private final AlunoRepository alunoRepository;
+    private final PessoaRepository pessoaRepository;
     private final EnderecoRepository enderecoRepository;
     private final CidadeRepository cidadeRepository;
 
@@ -41,57 +43,25 @@ public class AlunoService {
 
     public Alunos create(AlunoRequestDTO request) {
         CPF cpf = new CPF(request.cpf());
-        Optional<Alunos> alunoExistenteOpt = alunoRepository.findByCpf(cpf);
 
-        if (alunoExistenteOpt.isPresent()) {
-
-            Alunos alunoExistente = alunoExistenteOpt.get();
-
-            if (alunoExistente.getIsAtivo()) {
-
-                throw new BusinessException("Já existe um aluno ativo cadastrado com este CPF.");
-            } else {
-
-                var cidade = cidadeRepository.findByIbge(request.ibge())
-                        .orElseThrow(() -> new NotFoundException("Cidade não encontrada para atualização do aluno."));
-
-
-                alunoExistente.atualizarDados(request, AuthenticationUtil.retriveAuthenticatedUser());
-
-
-                Endereco endereco = enderecoRepository.findByAluno(alunoExistente);
-                if(endereco == null) {
-
-                    endereco = Endereco.paraEntidade(request, cidade);
-                    alunoExistente.setEndereco(endereco);
-                    endereco.setAluno(alunoExistente);
-                } else {
-                    endereco.atualizarDados(request, cidade);
-                }
-
-
-                alunoExistente.setIsAtivo(true);
-
-                return alunoRepository.save(alunoExistente);
-            }
-
-        } else {
-
-            var cidade = cidadeRepository.findByIbge(request.ibge())
-                    .orElseThrow(() -> new NotFoundException("Cidade não encontrada para novo aluno."));
-
-            Alunos alunoNovo = Alunos.paraEntidade(request);
-            Endereco enderecoNovo = Endereco.paraEntidade(request, cidade);
-
-            alunoNovo.setEndereco(enderecoNovo);
-            enderecoNovo.setAluno(alunoNovo);
-
-            alunoNovo.setCreatedBy(AuthenticationUtil.retriveAuthenticatedUser());
-            alunoNovo.setIsAtivo(true);
-            alunoNovo.setCreatedAt(LocalDateTime.now());
-
-            return alunoRepository.save(alunoNovo);
+        if (pessoaRepository.existsByCpf(cpf)) {
+            throw new BusinessException("Já existe uma pessoa (aluno ou colaborador) cadastrada com este CPF.");
         }
+
+        var cidade = cidadeRepository.findByIbge(request.ibge())
+                .orElseThrow(() -> new NotFoundException("Cidade não encontrada para novo aluno."));
+
+        Alunos alunoNovo = Alunos.paraEntidade(request);
+        Endereco enderecoNovo = Endereco.paraEntidade(request, cidade);
+
+        alunoNovo.setEndereco(enderecoNovo);
+        enderecoNovo.setAluno(alunoNovo);
+
+        alunoNovo.setCreatedBy(AuthenticationUtil.retriveAuthenticatedUser());
+        alunoNovo.setIsAtivo(true);
+        alunoNovo.setCreatedAt(LocalDateTime.now());
+
+        return alunoRepository.save(alunoNovo);
     }
 
     private String getCellValueAsString(Cell cell) {
