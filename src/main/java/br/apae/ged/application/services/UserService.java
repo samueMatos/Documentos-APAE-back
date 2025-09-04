@@ -1,22 +1,10 @@
 package br.apae.ged.application.services;
 
-import br.apae.ged.application.dto.ChangePasswordDTO;
-import br.apae.ged.application.dto.senha.ForgotPasswordDTO;
-import br.apae.ged.application.dto.senha.ResetPasswordDTO;
-import br.apae.ged.domain.utils.AuthenticationUtil;
-import br.apae.ged.presentation.configs.TokenService;
-import br.apae.ged.application.dto.user.UserLoginDTO;
-import br.apae.ged.application.dto.user.UserLoginResponseDTO;
-import br.apae.ged.application.dto.user.UserRequestDTO;
-import br.apae.ged.application.dto.user.UserResponse;
-import br.apae.ged.application.exceptions.NotFoundException;
-import br.apae.ged.domain.models.User;
-import br.apae.ged.domain.repositories.UserRepository;
-import br.apae.ged.domain.models.UserGroup;
-import br.apae.ged.domain.repositories.UserGroupRepository;
-import br.apae.ged.application.strategy.NewUserValidationStrategy;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Random;
+import java.util.stream.Collectors;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,10 +13,23 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Random;
-import java.util.stream.Collectors;
+import br.apae.ged.application.dto.ChangePasswordDTO;
+import br.apae.ged.application.dto.senha.ForgotPasswordDTO;
+import br.apae.ged.application.dto.senha.ResetPasswordDTO;
+import br.apae.ged.application.dto.user.UserLoginDTO;
+import br.apae.ged.application.dto.user.UserLoginResponseDTO;
+import br.apae.ged.application.dto.user.UserRequestDTO;
+import br.apae.ged.application.dto.user.UserResponse;
+import br.apae.ged.application.exceptions.NotFoundException;
+import br.apae.ged.application.strategy.NewUserValidationStrategy;
+import br.apae.ged.domain.models.User;
+import br.apae.ged.domain.models.UserGroup;
+import br.apae.ged.domain.repositories.UserGroupRepository;
+import br.apae.ged.domain.repositories.UserRepository;
+import br.apae.ged.domain.utils.AuthenticationUtil;
+import br.apae.ged.presentation.configs.TokenService;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -205,10 +206,23 @@ public class UserService {
         userRepository.save(user);
 
         String subject = "Código de Recuperação de Senha";
-        String message = "Seu código de recuperação de senha é: " + recoveryCode +
-                "\nEste código é válido por 10 minutos. Se você não solicitou esta alteração, por favor ignore este email.";
+        String html = """
+                        <html>
+                        <body>
+                            <img src="https://i.imgur.com/OOWZXHM.png" alt="Logo" width="120"/>
+                            <h2>Código para Recuperação de Senha</h2>
+                            <p>Prezado(a) usuário(a),</p>
+                            <p>Recebemos uma solicitação para redefinir a senha da sua conta. Para continuar, utilize o código de verificação a seguir:</p>
+                            <p style="font-size: 24px; font-weight: bold; text-align: center;">%s</p>
+                            <p>Por favor, insira este código no campo indicado na página de recuperação de senha.</p>
+                            <p>Este código de segurança é válido por apenas 10 minutos. Por motivos de segurança, não o compartilhe com ninguém.</p>
+                            <p>Se você não fez essa solicitação, ignore este e-mail. Sua senha atual permanecerá inalterada.</p>
+                            <p>Atenciosamente,<br> APAE</p>
+                        </body>
+                        </html>
+                    """.formatted(recoveryCode);
 
-        emailService.sendEmail(user.getEmail(), subject, message);
+emailService.sendHtmlEmail(user.getEmail(), subject, html);
     }
 
     @Transactional
